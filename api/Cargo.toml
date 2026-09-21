@@ -1,0 +1,35 @@
+[package]
+name = "rincuma-api"
+authors = ["Kamil Pomykała <kamil@kamilpomykala.dev>"]
+version = "0.1.0"
+edition = "2024"
+
+[lints.clippy]
+pedantic = { level = "deny", priority = -1 }
+# PANIC SAFETY
+unwrap_used = "deny"
+expect_used = "deny"
+indexing_slicing = "deny"
+unimplemented = "deny"
+unchecked_time_subtraction = "deny"
+todo = "deny"
+string_slice = "deny"
+panic_in_result_fn = "deny"
+panic = "deny"
+# OTHER
+large_enum_variant = "deny"
+
+[dependencies]
+dotenvy = "0.15"
+envy = "0.4"
+thiserror = "2.0.20"
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1.53.1", features = ["rt", "rt-multi-thread", "macros"] }
+
+axum = "0.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tower-http = { version = "0.7.1", features = ["trace"] }
+listenfd = "1"
+
+toasty = { version = "0.10", features = ["postgresql"] }
