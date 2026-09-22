@@ -14,6 +14,8 @@ static HASHING_LIMIT: OnceLock<Arc<Semaphore>> = OnceLock::new();
 
 #[derive(Debug, Error)]
 pub(crate) enum PasswordError {
+    #[error("password is too short")]
+    TooShort,
     #[error("password exceeds the maximum length")]
     TooLong,
     #[error("password hash is invalid")]
@@ -58,6 +60,10 @@ pub(crate) async fn verify_password(
 }
 
 fn validate_length(password: &str) -> Result<(), PasswordError> {
+    if password.is_empty() {
+        return Err(PasswordError::TooShort);
+    }
+
     if password.len() > MAX_PASSWORD_LENGTH {
         return Err(PasswordError::TooLong);
     }
@@ -104,6 +110,18 @@ mod tests {
         let result = hash_password("x".repeat(1_025)).await;
 
         assert!(matches!(result, Err(PasswordError::TooLong)));
+    }
+
+    #[tokio::test]
+    async fn rejects_empty_password_before_hashing_or_verification() {
+        assert!(matches!(
+            hash_password(String::new()).await,
+            Err(PasswordError::TooShort)
+        ));
+        assert!(matches!(
+            verify_password(String::new(), DUMMY_PASSWORD_HASH.to_owned()).await,
+            Err(PasswordError::TooShort)
+        ));
     }
 
     #[tokio::test]

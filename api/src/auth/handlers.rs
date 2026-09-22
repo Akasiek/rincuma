@@ -162,7 +162,7 @@ fn normalize_email(email: &str) -> Result<String, AuthError> {
 #[allow(clippy::needless_pass_by_value)]
 fn map_password_error(error: PasswordError) -> AuthError {
     match error {
-        PasswordError::TooLong => AuthError::BadRequest,
+        PasswordError::TooShort | PasswordError::TooLong => AuthError::BadRequest,
         PasswordError::InvalidHash | PasswordError::Hashing | PasswordError::Task(_) => {
             AuthError::Password(error)
         }
