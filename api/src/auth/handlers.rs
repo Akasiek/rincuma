@@ -10,7 +10,7 @@ use crate::{
     auth::{
         error::AuthError,
         extractor::CurrentUser,
-        password::{PasswordError, hash_password, verify_password},
+        password::{DUMMY_PASSWORD_HASH, PasswordError, hash_password, verify_password},
         session::create_session,
         session_cookie::{removal_cookie, session_cookie, session_token},
         time::current_unix_timestamp_seconds,
@@ -81,7 +81,7 @@ pub(super) async fn login(
 
     let Some(user) = user else {
         // Keep the failure path expensive to reduce timing-based account enumeration.
-        hash_password(credentials.password)
+        verify_password(credentials.password, DUMMY_PASSWORD_HASH.to_owned())
             .await
             .map_err(map_password_error)?;
         return Err(AuthError::Unauthorized);
@@ -114,7 +114,8 @@ pub(super) async fn logout(
     }
 
     let cookie = removal_cookie(state.config().cookie_secure());
-    let header_value = HeaderValue::from_str(&cookie.to_string()).map_err(|_| AuthError::Internal)?;
+    let header_value =
+        HeaderValue::from_str(&cookie.to_string()).map_err(|_| AuthError::Internal)?;
 
     Ok((StatusCode::NO_CONTENT, [(header::SET_COOKIE, header_value)]))
 }

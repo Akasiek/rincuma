@@ -8,6 +8,8 @@ use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 
 const MAX_PASSWORD_LENGTH: usize = 1_024;
 const MAX_CONCURRENT_HASHES: usize = 2;
+pub(crate) const DUMMY_PASSWORD_HASH: &str =
+    "$argon2id$v=19$m=19456,t=2,p=1$c29tZXNhbHQ$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 static HASHING_LIMIT: OnceLock<Arc<Semaphore>> = OnceLock::new();
 
 #[derive(Debug, Error)]
@@ -76,7 +78,7 @@ fn hashing_limit() -> Arc<Semaphore> {
 
 #[cfg(test)]
 mod tests {
-    use super::{PasswordError, hash_password, verify_password};
+    use super::{DUMMY_PASSWORD_HASH, PasswordError, hash_password, verify_password};
 
     #[tokio::test]
     async fn hashes_and_verifies_password() {
@@ -102,5 +104,13 @@ mod tests {
         let result = hash_password("x".repeat(1_025)).await;
 
         assert!(matches!(result, Err(PasswordError::TooLong)));
+    }
+
+    #[tokio::test]
+    async fn dummy_hash_is_valid_and_never_matches() {
+        assert!(matches!(
+            verify_password("any password".to_owned(), DUMMY_PASSWORD_HASH.to_owned()).await,
+            Ok(false)
+        ));
     }
 }
