@@ -9,6 +9,7 @@ services:
       CARGO_HOME: /app/target/docker/cargo-home
       CARGO_TARGET_DIR: /app/target/docker/build
       DATA_DIR: /var/lib/rincuma
+      COOKIE_SECURE: "false"
       DB_USER: ${DB_USER:-rincuma}
       DB_PASS: ${DB_PASS:-rincuma}
       DB_HOST: postgres
