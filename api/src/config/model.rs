@@ -6,6 +6,7 @@ pub(crate) struct AppConfig {
     pub(super) data_dir: PathBuf,
     pub(super) database_url: String,
     pub(super) listen_address: SocketAddr,
+    pub(super) cookie_secure: bool,
 }
 
 impl AppConfig {
@@ -15,6 +16,7 @@ impl AppConfig {
             data_dir: library_dir.join("data"),
             database_url: "sqlite::memory:".to_owned(),
             listen_address: SocketAddr::from(([127, 0, 0, 1], 0)),
+            cookie_secure: false,
         }
     }
 
@@ -28,5 +30,9 @@ impl AppConfig {
 
     pub(crate) const fn listen_address(&self) -> SocketAddr {
         self.listen_address
+    }
+
+    pub(crate) const fn cookie_secure(&self) -> bool {
+        self.cookie_secure
     }
 }

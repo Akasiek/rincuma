@@ -29,3 +29,16 @@ Stop the development stack with:
 ```bash
 docker compose --env-file .env -f docker/compose.dev.yaml down
 ```
+
+### Database migrations
+
+The migration CLI is optional and does not become part of the API binary. Run
+these commands from the `api` directory with PostgreSQL available:
+
+```bash
+cargo run --features migration-cli --bin rincuma-migrate -- migration generate --name auth
+cargo run --features migration-cli --bin rincuma-migrate -- migration apply
+```
+
+Generated migrations, schema snapshots, and migration history are written to
+the `api/toasty` directory.

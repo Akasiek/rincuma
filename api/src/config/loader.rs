@@ -22,6 +22,8 @@ struct EnvConfig {
     db_port: u16,
     #[serde(default = "default_db_name")]
     db_name: String,
+    #[serde(default = "default_cookie_secure")]
+    cookie_secure: bool,
 }
 
 impl AppConfig {
@@ -34,17 +36,14 @@ impl AppConfig {
 
         let database_url = format!(
             "postgresql://{}:{}@{}:{}/{}",
-            config.db_user,
-            config.db_pass,
-            config.db_host,
-            config.db_port,
-            config.db_name
+            config.db_user, config.db_pass, config.db_host, config.db_port, config.db_name
         );
 
         Ok(Self {
             data_dir: config.data_dir,
             database_url,
             listen_address: SocketAddr::new(config.host, config.port),
+            cookie_secure: config.cookie_secure,
         })
     }
 }
@@ -71,4 +70,8 @@ fn default_db_port() -> u16 {
 
 fn default_db_name() -> String {
     "rincuma".into()
+}
+
+const fn default_cookie_secure() -> bool {
+    true
 }
