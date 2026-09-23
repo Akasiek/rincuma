@@ -1,5 +1,6 @@
 **/.idea
 **/target
 **/.env
+/api/http/http-client.private.env.json
 
 /api/docker/volumes/

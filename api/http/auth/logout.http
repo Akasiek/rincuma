@@ -1,0 +1,2 @@
+POST {{baseUrl}}/auth/logout
+Cookie: {{sessionCookie}}
