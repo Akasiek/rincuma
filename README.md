@@ -11,18 +11,30 @@ Q. noun. task, charge, mission
 
 ## Development
 
-### Running the API with Docker
+### Local API and PostgreSQL
 
-The development stack runs PostgreSQL and the API with hot reload. From the
-`api` directory run:
+The development Docker stack runs only PostgreSQL. From the `api` directory,
+create `.env` on the first setup and start the database:
 
 ```bash
 cp .env.example .env
-docker compose --env-file .env -f docker/compose.dev.yaml up --build
+docker compose --env-file .env -f docker/compose.dev.yaml up -d
+```
+
+Check that `DB_PASS` in `.env` matches the password in an existing PostgreSQL
+volume. Run the Rust API locally from a second terminal in the `api` directory:
+
+```bash
+# with hot-reload
+systemfd --no-pid -s http::7878 -- cargo watch -x run
+
+# or without hot-reload
+cargo run
 ```
 
 The API is available at `http://localhost:7878` and PostgreSQL at
-`localhost:5432`. Changes in `api/src` automatically restart the API.
+`localhost:5432`. The local API loads `.env`, including `DB_HOST=localhost`
+and `COOKIE_SECURE=false`.
 
 Stop the development stack with:
 

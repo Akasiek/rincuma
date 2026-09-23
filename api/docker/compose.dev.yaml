@@ -1,41 +1,11 @@
 name: rincuma-dev
 
 services:
-  app:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.dev
-    environment:
-      CARGO_HOME: /app/target/docker/cargo-home
-      CARGO_TARGET_DIR: /app/target/docker/build
-      DATA_DIR: /var/lib/rincuma
-      COOKIE_SECURE: "false"
-      DB_USER: ${DB_USER:-rincuma}
-      DB_PASS: ${DB_PASS:-rincuma}
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-rincuma}
-      RUST_LOG: ${RUST_LOG:-rincuma_api=debug,tower_http=debug}
-    ports:
-      - "${APP_PORT:-7878}:7878"
-    volumes:
-      - ..:/app
-      - ./volumes/app-data:/var/lib/rincuma
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:7878/health"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 5m
-
   postgres:
     image: postgres:18-alpine
     environment:
       POSTGRES_USER: ${DB_USER:-rincuma}
-      POSTGRES_PASSWORD: ${DB_PASS:-rincuma}
+      POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME:-rincuma}
     ports:
       - "${DB_PORT:-5432}:5432"
