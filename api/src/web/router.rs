@@ -1,5 +1,5 @@
 use crate::app_state::AppState;
-use crate::web::auth;
+use crate::web::{auth, task};
 use axum::Router;
 use axum::extract::MatchedPath;
 use axum::http::{Request, StatusCode};
@@ -11,6 +11,7 @@ pub fn get_app_router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(health))
         .nest("/auth", auth::router())
+        .merge(task::router())
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
                 let matched_path = request

@@ -6,7 +6,8 @@ use super::{
 use jiff::Timestamp;
 use toasty::{Deferred, Embed, Model};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Embed)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, Embed)]
+#[serde(rename_all = "snake_case")]
 pub(crate) enum TaskPriority {
     None,
     Low,
