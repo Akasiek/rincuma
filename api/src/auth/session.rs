@@ -10,6 +10,8 @@ pub(crate) enum SessionError {
     Token(#[from] TokenGenerationError),
     #[error("failed to store a session")]
     Database(#[from] toasty::Error),
+    #[error("session expiration is outside the supported time range")]
+    Expiration(#[from] jiff::Error),
 }
 
 pub(crate) const SESSION_DURATION_SECONDS: i64 = 60 * 60 * 24 * 30;
@@ -17,14 +19,15 @@ pub(crate) const SESSION_DURATION_SECONDS: i64 = 60 * 60 * 24 * 30;
 pub(crate) async fn create_session(
     executor: &mut dyn toasty::Executor,
     user_id: i64,
-    now: i64,
+    now: jiff::Timestamp,
 ) -> Result<SessionToken, SessionError> {
     let token = SessionToken::generate()?;
+    let expires_at = now.checked_add(jiff::SignedDuration::new(SESSION_DURATION_SECONDS, 0))?;
 
     toasty::create!(Session {
         token_hash: token.digest(),
         user_id,
-        expires_at: now + SESSION_DURATION_SECONDS,
+        expires_at,
         created_at: now,
     })
     .exec(executor)

@@ -4,7 +4,7 @@ version = 1
 
 [[schema.tables]]
 id = 0
-name = "sessions"
+name = "users"
 primary_key = { columns = [{ table = 0, index = 0 }], index = { table = 0, index = 0 } }
 
 [[schema.tables.columns]]
@@ -16,31 +16,37 @@ auto_increment = true
 
 [[schema.tables.columns]]
 id = { table = 0, index = 1 }
-name = "token_hash"
+name = "email"
 ty = "String"
 storage_ty = "Text"
 
 [[schema.tables.columns]]
 id = { table = 0, index = 2 }
-name = "user_id"
-ty = "I64"
-storage_ty = { Integer = 8 }
+name = "password_hash"
+ty = "String"
+storage_ty = "Text"
 
 [[schema.tables.columns]]
 id = { table = 0, index = 3 }
-name = "expires_at"
-ty = "I64"
-storage_ty = { Integer = 8 }
+name = "is_active"
+ty = "Bool"
+storage_ty = "Boolean"
 
 [[schema.tables.columns]]
 id = { table = 0, index = 4 }
 name = "created_at"
-ty = "I64"
-storage_ty = { Integer = 8 }
+ty = "Timestamp"
+storage_ty = { Timestamp = 6 }
+
+[[schema.tables.columns]]
+id = { table = 0, index = 5 }
+name = "updated_at"
+ty = "Timestamp"
+storage_ty = { Timestamp = 6 }
 
 [[schema.tables.indices]]
 id = { table = 0, index = 0 }
-name = "index_sessions_by_id"
+name = "index_users_by_id"
 on = 0
 columns = [{ column = { table = 0, index = 0 }, op = "Eq", scope = "Partition" }]
 unique = true
@@ -48,20 +54,14 @@ primary_key = true
 
 [[schema.tables.indices]]
 id = { table = 0, index = 1 }
-name = "index_sessions_by_token_hash"
+name = "index_users_by_email"
 on = 0
 columns = [{ column = { table = 0, index = 1 }, op = "Eq", scope = "Partition" }]
 unique = true
 
-[[schema.tables.indices]]
-id = { table = 0, index = 2 }
-name = "index_sessions_by_user_id"
-on = 0
-columns = [{ column = { table = 0, index = 2 }, op = "Eq", scope = "Partition" }]
-
 [[schema.tables]]
 id = 1
-name = "users"
+name = "sessions"
 primary_key = { columns = [{ table = 1, index = 0 }], index = { table = 1, index = 0 } }
 
 [[schema.tables.columns]]
@@ -73,37 +73,31 @@ auto_increment = true
 
 [[schema.tables.columns]]
 id = { table = 1, index = 1 }
-name = "email"
+name = "token_hash"
 ty = "String"
 storage_ty = "Text"
 
 [[schema.tables.columns]]
 id = { table = 1, index = 2 }
-name = "password_hash"
-ty = "String"
-storage_ty = "Text"
+name = "user_id"
+ty = "I64"
+storage_ty = { Integer = 8 }
 
 [[schema.tables.columns]]
 id = { table = 1, index = 3 }
-name = "is_active"
-ty = "Bool"
-storage_ty = "Boolean"
+name = "expires_at"
+ty = "Timestamp"
+storage_ty = { Timestamp = 6 }
 
 [[schema.tables.columns]]
 id = { table = 1, index = 4 }
 name = "created_at"
-ty = "I64"
-storage_ty = { Integer = 8 }
-
-[[schema.tables.columns]]
-id = { table = 1, index = 5 }
-name = "updated_at"
-ty = "I64"
-storage_ty = { Integer = 8 }
+ty = "Timestamp"
+storage_ty = { Timestamp = 6 }
 
 [[schema.tables.indices]]
 id = { table = 1, index = 0 }
-name = "index_users_by_id"
+name = "index_sessions_by_id"
 on = 1
 columns = [{ column = { table = 1, index = 0 }, op = "Eq", scope = "Partition" }]
 unique = true
@@ -111,7 +105,13 @@ primary_key = true
 
 [[schema.tables.indices]]
 id = { table = 1, index = 1 }
-name = "index_users_by_email"
+name = "index_sessions_by_token_hash"
 on = 1
 columns = [{ column = { table = 1, index = 1 }, op = "Eq", scope = "Partition" }]
 unique = true
+
+[[schema.tables.indices]]
+id = { table = 1, index = 2 }
+name = "index_sessions_by_user_id"
+on = 1
+columns = [{ column = { table = 1, index = 2 }, op = "Eq", scope = "Partition" }]

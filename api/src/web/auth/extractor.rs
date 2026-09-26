@@ -3,9 +3,7 @@ use axum::{extract::FromRequestParts, http::request::Parts};
 use crate::{
     app_state::AppState,
     db::{Session, User},
-    web::auth::{
-        error::AuthError, session_cookie::session_token, time::current_unix_timestamp_seconds,
-    },
+    web::auth::{error::AuthError, session_cookie::session_token, time::current_timestamp},
 };
 
 pub(crate) struct CurrentUser(pub(crate) User);
@@ -19,7 +17,7 @@ impl FromRequestParts<AppState> for CurrentUser {
     ) -> Result<Self, Self::Rejection> {
         let token = session_token(&parts.headers, state.config().cookie_secure())
             .ok_or(AuthError::Unauthorized)?;
-        let now = current_unix_timestamp_seconds()?;
+        let now = current_timestamp()?;
         let mut db = state.db().clone();
 
         let session = Session::filter_by_token_hash(token.digest())

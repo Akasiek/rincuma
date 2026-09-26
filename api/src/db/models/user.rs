@@ -12,6 +12,6 @@ pub(crate) struct User {
     #[default(true)]
     pub(crate) is_active: bool,
 
-    pub(crate) created_at: i64,
-    pub(crate) updated_at: i64,
+    pub(crate) created_at: jiff::Timestamp,
+    pub(crate) updated_at: jiff::Timestamp,
 }

@@ -17,7 +17,7 @@ use crate::{
         error::AuthError,
         extractor::CurrentUser,
         session_cookie::{removal_cookie, session_cookie, session_token},
-        time::current_unix_timestamp_seconds,
+        time::current_timestamp,
     },
 };
 
@@ -50,7 +50,7 @@ pub(super) async fn register(
     let password_hash = hash_password(credentials.password)
         .await
         .map_err(map_password_error)?;
-    let now = current_unix_timestamp_seconds()?;
+    let now = current_timestamp()?;
     let mut db = state.db().clone();
 
     let mut transaction = db.transaction().await.map_err(AuthError::from)?;
@@ -97,7 +97,7 @@ pub(super) async fn login(
         return Err(AuthError::Unauthorized);
     }
 
-    let now = current_unix_timestamp_seconds()?;
+    let now = current_timestamp()?;
     let token = create_session(&mut db, user.id, now).await?;
     authenticated_response(&state, &token, user)
 }
