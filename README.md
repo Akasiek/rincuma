@@ -45,10 +45,9 @@ docker compose --env-file .env -f docker/compose.dev.yaml down
 ### Database migrations
 
 The migration CLI is optional and does not become part of the API binary. Run
-these commands from the `api` directory with PostgreSQL available:
+this command from the `api` directory with PostgreSQL available to migrate database:
 
 ```bash
-cargo run --features migration-cli --bin rincuma-migrate -- migration generate --name auth
 cargo run --features migration-cli --bin rincuma-migrate -- migration apply
 ```
 
