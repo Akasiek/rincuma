@@ -1,16 +1,25 @@
 use crate::{
-    auth::{error::AuthError, token::SessionToken},
+    auth::token::{SessionToken, TokenGenerationError},
     db::Session,
 };
+use thiserror::Error;
 
-pub(super) const SESSION_DURATION_SECONDS: i64 = 60 * 60 * 24 * 30;
+#[derive(Debug, Error)]
+pub(crate) enum SessionError {
+    #[error("failed to generate a session token")]
+    Token(#[from] TokenGenerationError),
+    #[error("failed to store a session")]
+    Database(#[from] toasty::Error),
+}
 
-pub(super) async fn create_session(
+pub(crate) const SESSION_DURATION_SECONDS: i64 = 60 * 60 * 24 * 30;
+
+pub(crate) async fn create_session(
     executor: &mut dyn toasty::Executor,
     user_id: i64,
     now: i64,
-) -> Result<SessionToken, AuthError> {
-    let token = SessionToken::generate().map_err(|_| AuthError::Internal)?;
+) -> Result<SessionToken, SessionError> {
+    let token = SessionToken::generate()?;
 
     toasty::create!(Session {
         token_hash: token.digest(),
@@ -20,7 +29,7 @@ pub(super) async fn create_session(
     })
     .exec(executor)
     .await
-    .map_err(AuthError::from)?;
+    .map_err(SessionError::from)?;
 
     Ok(token)
 }

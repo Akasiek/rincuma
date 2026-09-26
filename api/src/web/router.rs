@@ -1,4 +1,5 @@
-use crate::{app_state::AppState, auth};
+use crate::app_state::AppState;
+use crate::web::auth;
 use axum::Router;
 use axum::extract::MatchedPath;
 use axum::http::{Request, StatusCode};

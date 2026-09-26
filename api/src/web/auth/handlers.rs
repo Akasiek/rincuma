@@ -8,15 +8,17 @@ use serde::{Deserialize, Serialize};
 use crate::{
     app_state::AppState,
     auth::{
-        error::AuthError,
-        extractor::CurrentUser,
         password::{DUMMY_PASSWORD_HASH, PasswordError, hash_password, verify_password},
         session::create_session,
-        session_cookie::{removal_cookie, session_cookie, session_token},
-        time::current_unix_timestamp_seconds,
         token::SessionToken,
     },
     db::{Session, User},
+    web::auth::{
+        error::AuthError,
+        extractor::CurrentUser,
+        session_cookie::{removal_cookie, session_cookie, session_token},
+        time::current_unix_timestamp_seconds,
+    },
 };
 
 #[derive(Deserialize)]

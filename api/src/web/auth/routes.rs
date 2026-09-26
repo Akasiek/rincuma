@@ -5,7 +5,7 @@ use axum::{
 
 use crate::{
     app_state::AppState,
-    auth::handlers::{login, logout, me, register},
+    web::auth::handlers::{login, logout, me, register},
 };
 
 pub(crate) fn router() -> Router<AppState> {

@@ -5,7 +5,7 @@ use axum::{
 use thiserror::Error;
 use tracing::error;
 
-use crate::auth::password::PasswordError;
+use crate::auth::{password::PasswordError, session::SessionError};
 
 #[derive(Debug, Error)]
 pub(crate) enum AuthError {
@@ -21,6 +21,8 @@ pub(crate) enum AuthError {
     Database(#[from] toasty::Error),
     #[error("password operation failed")]
     Password(#[source] PasswordError),
+    #[error("session operation failed")]
+    Session(#[from] SessionError),
 }
 
 impl IntoResponse for AuthError {
@@ -29,7 +31,7 @@ impl IntoResponse for AuthError {
             Self::BadRequest => StatusCode::BAD_REQUEST,
             Self::Conflict => StatusCode::CONFLICT,
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
-            Self::Internal | Self::Database(_) | Self::Password(_) => {
+            Self::Internal | Self::Database(_) | Self::Password(_) | Self::Session(_) => {
                 error!(error = ?self, "authentication request failed");
                 StatusCode::INTERNAL_SERVER_ERROR
             }

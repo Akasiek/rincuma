@@ -2,8 +2,10 @@ use axum::{extract::FromRequestParts, http::request::Parts};
 
 use crate::{
     app_state::AppState,
-    auth::{error::AuthError, session_cookie::session_token, time::current_unix_timestamp_seconds},
     db::{Session, User},
+    web::auth::{
+        error::AuthError, session_cookie::session_token, time::current_unix_timestamp_seconds,
+    },
 };
 
 pub(crate) struct CurrentUser(pub(crate) User);
