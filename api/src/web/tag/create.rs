@@ -1,12 +1,16 @@
 use axum::{Json, extract::State, http::StatusCode};
 use garde::Validate;
 use jiff::Timestamp;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::{
     app_state::AppState,
     db::Tag,
-    web::{auth::CurrentUser, tag::TagError, validation::validate_hex_color},
+    web::{
+        auth::CurrentUser,
+        tag::{TagError, response::TagResponse},
+        validation::validate_hex_color,
+    },
 };
 
 #[derive(Deserialize, Validate)]
@@ -15,16 +19,6 @@ pub(super) struct CreateTagRequest {
     name: String,
     #[garde(inner(custom(validate_hex_color)))]
     color: Option<String>,
-}
-
-#[derive(Serialize)]
-pub(super) struct TagResponse {
-    id: i64,
-    name: String,
-    color: Option<String>,
-    owner_id: i64,
-    created_at: Timestamp,
-    updated_at: Timestamp,
 }
 
 pub(super) async fn create(
@@ -47,17 +41,7 @@ pub(super) async fn create(
     .exec(&mut db)
     .await?;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(TagResponse {
-            id: tag.id,
-            name: tag.name,
-            color: tag.color,
-            owner_id: tag.owner_id,
-            created_at: tag.created_at,
-            updated_at: tag.updated_at,
-        }),
-    ))
+    Ok((StatusCode::CREATED, Json(tag.into())))
 }
 
 #[cfg(test)]
