@@ -10,6 +10,7 @@ pub(crate) struct Project {
 
     pub(crate) name: String,
     pub(crate) description: Option<String>,
+    pub(crate) color: Option<String>,
     pub(crate) archived_at: Option<Timestamp>,
     pub(crate) created_at: Timestamp,
     pub(crate) updated_at: Timestamp,
