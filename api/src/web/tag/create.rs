@@ -61,5 +61,5 @@ pub(super) async fn create(
 }
 
 #[cfg(test)]
-#[path = "tests.rs"]
+#[path = "tests/create.rs"]
 mod tests;

@@ -1,12 +1,16 @@
 use axum::{Json, extract::State, http::StatusCode};
 use garde::Validate;
 use jiff::Timestamp;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::{
     app_state::AppState,
     db::Project,
-    web::{auth::CurrentUser, project::ProjectError, validation::validate_hex_color},
+    web::{
+        auth::CurrentUser,
+        project::{ProjectError, response::ProjectResponse},
+        validation::validate_hex_color,
+    },
 };
 
 #[derive(Deserialize, Validate)]
@@ -17,18 +21,6 @@ pub(super) struct CreateProjectRequest {
     description: Option<String>,
     #[garde(inner(custom(validate_hex_color)))]
     color: Option<String>,
-}
-
-#[derive(Serialize)]
-pub(super) struct ProjectResponse {
-    id: i64,
-    name: String,
-    description: Option<String>,
-    color: Option<String>,
-    archived_at: Option<Timestamp>,
-    owner_id: i64,
-    created_at: Timestamp,
-    updated_at: Timestamp,
 }
 
 pub(super) async fn create(
@@ -54,21 +46,9 @@ pub(super) async fn create(
     .exec(&mut db)
     .await?;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(ProjectResponse {
-            id: project.id,
-            name: project.name,
-            description: project.description,
-            color: project.color,
-            archived_at: project.archived_at,
-            owner_id: project.owner_id,
-            created_at: project.created_at,
-            updated_at: project.updated_at,
-        }),
-    ))
+    Ok((StatusCode::CREATED, Json(project.into())))
 }
 
 #[cfg(test)]
-#[path = "tests.rs"]
+#[path = "tests/create.rs"]
 mod tests;
