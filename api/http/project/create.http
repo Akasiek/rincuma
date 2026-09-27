@@ -1,0 +1,9 @@
+POST {{baseUrl}}/projects
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Test Project 1",
+  "description": "Test project",
+  "color": "#3B82F6"
+}
