@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use axum::{Json, extract::State, http::StatusCode};
 use garde::Validate;
 use jiff::Timestamp;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::{
     app_state::AppState,
@@ -13,6 +13,7 @@ use crate::{
         task::{
             TaskError,
             relations::{get_owned_task, validate_active_project, validate_owned_tag},
+            response::TaskResponse,
         },
     },
 };
@@ -29,22 +30,6 @@ pub(super) struct CreateTaskRequest {
     parent_id: Option<i64>,
     #[serde(default)]
     tag_ids: Vec<i64>,
-}
-
-#[derive(Serialize)]
-pub(super) struct TaskResponse {
-    id: i64,
-    name: String,
-    description: Option<String>,
-    due_at: Option<Timestamp>,
-    completed_at: Option<Timestamp>,
-    priority: TaskPriority,
-    owner_id: i64,
-    project_id: Option<i64>,
-    parent_id: Option<i64>,
-    tag_ids: Vec<i64>,
-    created_at: Timestamp,
-    updated_at: Timestamp,
 }
 
 pub(super) async fn create(
@@ -105,23 +90,7 @@ pub(super) async fn create(
 
     transaction.commit().await?;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(TaskResponse {
-            id: task.id,
-            name: task.name,
-            description: task.description,
-            due_at: task.due_at,
-            completed_at: task.completed_at,
-            priority: task.priority,
-            owner_id: task.owner_id,
-            project_id: task.project_id,
-            parent_id: task.parent_id,
-            tag_ids,
-            created_at: task.created_at,
-            updated_at: task.updated_at,
-        }),
-    ))
+    Ok((StatusCode::CREATED, Json(TaskResponse::new(task, tag_ids))))
 }
 
 #[cfg(test)]

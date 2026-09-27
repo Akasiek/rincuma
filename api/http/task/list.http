@@ -1,0 +1,10 @@
+GET {{baseUrl}}/tasks?status=active&sort_by=created_at&order=desc&limit=50&offset=0
+Cookie: {{sessionCookie}}
+
+### Overdue tasks
+GET {{baseUrl}}/tasks?status=overdue&sort_by=due_at&order=asc
+Cookie: {{sessionCookie}}
+
+### Upcoming tasks
+GET {{baseUrl}}/tasks?status=upcoming&sort_by=due_at&order=asc
+Cookie: {{sessionCookie}}
