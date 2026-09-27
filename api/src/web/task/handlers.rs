@@ -123,3 +123,7 @@ pub(super) async fn create(
         }),
     ))
 }
+
+#[cfg(test)]
+#[path = "tests.rs"]
+mod tests;
