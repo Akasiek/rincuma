@@ -149,7 +149,14 @@ async fn filters_overdue_and_upcoming_tasks() -> Result<(), Box<dyn std::error::
     let upcoming = insert_due_task(&mut db, user.id, "Future", Some(future), None).await?;
     insert_due_task(&mut db, user.id, "No deadline", None, None).await?;
     insert_due_task(&mut db, user.id, "Completed", Some(past), Some(past)).await?;
-    insert_due_task(&mut db, user.id, "Completed future", Some(future), Some(past)).await?;
+    insert_due_task(
+        &mut db,
+        user.id,
+        "Completed future",
+        Some(future),
+        Some(past),
+    )
+    .await?;
 
     let response = list_for(
         &state,
@@ -173,7 +180,10 @@ async fn filters_overdue_and_upcoming_tasks() -> Result<(), Box<dyn std::error::
     )
     .await?;
     assert_eq!(response.total, 1);
-    assert_eq!(response.items.first().map(|task| task.id), Some(upcoming.id));
+    assert_eq!(
+        response.items.first().map(|task| task.id),
+        Some(upcoming.id)
+    );
 
     let completed = list_for(
         &state,
