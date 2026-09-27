@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use axum::{Json, extract::State, http::StatusCode};
+use garde::Validate;
 use jiff::Timestamp;
 use serde::{Deserialize, Serialize};
 
@@ -16,8 +17,10 @@ use crate::{
     },
 };
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
+#[garde(allow_unvalidated)]
 pub(super) struct CreateTaskRequest {
+    #[garde(length(bytes, min = 1, max = 255))]
     name: String,
     description: Option<String>,
     due_at: Option<Timestamp>,
@@ -47,12 +50,10 @@ pub(super) struct TaskResponse {
 pub(super) async fn create(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
-    Json(request): Json<CreateTaskRequest>,
+    Json(mut request): Json<CreateTaskRequest>,
 ) -> Result<(StatusCode, Json<TaskResponse>), TaskError> {
-    let name = request.name.trim();
-    if name.is_empty() || name.len() > 255 {
-        return Err(TaskError::BadRequest);
-    }
+    request.name = request.name.trim().to_owned();
+    request.validate().map_err(|_| TaskError::BadRequest)?;
 
     let tag_ids = request.tag_ids;
     let mut seen = HashSet::new();
@@ -80,7 +81,7 @@ pub(super) async fn create(
     }
 
     let task = toasty::create!(Task {
-        name: name.to_owned(),
+        name: request.name,
         description: request.description,
         due_at: request.due_at,
         priority: request.priority.unwrap_or(TaskPriority::None),
