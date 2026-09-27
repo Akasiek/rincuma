@@ -4,7 +4,7 @@ use jiff::Timestamp;
 use super::{CreateTaskRequest, create};
 use crate::{
     db::{Project, Tag, Task, TaskPriority, TaskTag, User},
-    web::{auth::CurrentUser, task::error::TaskError, test_support::state_with_user},
+    web::{auth::CurrentUser, task::TaskError, test_support::state_with_user},
 };
 
 fn request(name: &str) -> CreateTaskRequest {
@@ -141,7 +141,7 @@ async fn rejects_invalid_task_input() -> Result<(), Box<dyn std::error::Error>> 
     ] {
         let (state, user) = state_with_user().await?;
         let result = create(State(state), CurrentUser(user), Json(request)).await;
-        assert!(matches!(result, Err(TaskError::BadRequest)));
+        assert!(matches!(result, Err(TaskError::BadRequest(_))));
     }
     Ok(())
 }
@@ -219,7 +219,7 @@ async fn rejects_unowned_and_archived_relations() -> Result<(), Box<dyn std::err
             Json(request),
         )
         .await;
-        assert!(matches!(result, Err(TaskError::RelatedResourceNotFound)));
+        assert!(matches!(result, Err(TaskError::RelatedResourceNotFound(_))));
     }
     Ok(())
 }
@@ -252,6 +252,6 @@ async fn rejects_parent_from_different_project() -> Result<(), Box<dyn std::erro
     };
 
     let result = create(State(state), CurrentUser(user), Json(request)).await;
-    assert!(matches!(result, Err(TaskError::BadRequest)));
+    assert!(matches!(result, Err(TaskError::BadRequest(_))));
     Ok(())
 }

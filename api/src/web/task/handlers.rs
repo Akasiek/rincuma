@@ -11,7 +11,7 @@ use crate::{
     web::{
         auth::CurrentUser,
         task::{
-            error::TaskError,
+            TaskError,
             relations::{get_owned_task, validate_active_project, validate_owned_tag},
         },
     },
@@ -53,12 +53,12 @@ pub(super) async fn create(
     Json(mut request): Json<CreateTaskRequest>,
 ) -> Result<(StatusCode, Json<TaskResponse>), TaskError> {
     request.name = request.name.trim().to_owned();
-    request.validate().map_err(|_| TaskError::BadRequest)?;
+    request.validate().map_err(|_| TaskError::bad_request())?;
 
     let tag_ids = request.tag_ids;
     let mut seen = HashSet::new();
     if tag_ids.iter().any(|&id| id <= 0 || !seen.insert(id)) {
-        return Err(TaskError::BadRequest);
+        return Err(TaskError::bad_request());
     }
 
     let now = Timestamp::now();
@@ -72,7 +72,7 @@ pub(super) async fn create(
     if let Some(parent_id) = request.parent_id {
         let parent = get_owned_task(&mut transaction, parent_id, user.id).await?;
         if parent.project_id != request.project_id {
-            return Err(TaskError::BadRequest);
+            return Err(TaskError::bad_request());
         }
     }
 

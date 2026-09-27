@@ -1,4 +1,5 @@
 mod auth;
+mod error;
 mod project;
 mod router;
 mod server;

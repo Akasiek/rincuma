@@ -1,6 +1,6 @@
 use crate::{
     db::{Project, Tag, Task},
-    web::task::error::TaskError,
+    web::task::TaskError,
 };
 
 pub(super) async fn get_owned_task(
@@ -13,7 +13,7 @@ pub(super) async fn get_owned_task(
         .exec(executor)
         .await?
         .filter(|task| task.owner_id == owner_id)
-        .ok_or(TaskError::RelatedResourceNotFound)
+        .ok_or_else(TaskError::related_resource_not_found)
 }
 
 pub(super) async fn validate_active_project(
@@ -26,7 +26,7 @@ pub(super) async fn validate_active_project(
         .exec(executor)
         .await?
         .filter(|project| project.owner_id == owner_id && project.archived_at.is_none())
-        .ok_or(TaskError::RelatedResourceNotFound)
+        .ok_or_else(TaskError::related_resource_not_found)
         .map(|_| ())
 }
 
@@ -40,6 +40,6 @@ pub(super) async fn validate_owned_tag(
         .exec(executor)
         .await?
         .filter(|tag| tag.owner_id == owner_id)
-        .ok_or(TaskError::RelatedResourceNotFound)
+        .ok_or_else(TaskError::related_resource_not_found)
         .map(|_| ())
 }

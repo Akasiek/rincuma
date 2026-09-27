@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     app_state::AppState,
     db::Project,
-    web::{auth::CurrentUser, project::error::ProjectError, validation::validate_hex_color},
+    web::{auth::CurrentUser, project::ProjectError, validation::validate_hex_color},
 };
 
 #[derive(Deserialize, Validate)]
@@ -37,7 +37,9 @@ pub(super) async fn create(
     Json(mut request): Json<CreateProjectRequest>,
 ) -> Result<(StatusCode, Json<ProjectResponse>), ProjectError> {
     request.name = request.name.trim().to_owned();
-    request.validate().map_err(|_| ProjectError::BadRequest)?;
+    request
+        .validate()
+        .map_err(|_| ProjectError::bad_request())?;
 
     let now = Timestamp::now();
     let mut db = state.db().clone();

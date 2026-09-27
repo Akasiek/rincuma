@@ -4,7 +4,7 @@ use garde::Validate;
 use super::{CreateProjectRequest, create};
 use crate::{
     db::Project,
-    web::{auth::CurrentUser, project::error::ProjectError, test_support::state_with_user},
+    web::{auth::CurrentUser, project::ProjectError, test_support::state_with_user},
 };
 
 #[tokio::test]
@@ -51,7 +51,7 @@ async fn rejects_invalid_project_names_and_colors() -> Result<(), Box<dyn std::e
         };
 
         let result = create(State(state), CurrentUser(user), Json(request)).await;
-        assert!(matches!(result, Err(ProjectError::BadRequest)));
+        assert!(matches!(result, Err(ProjectError::BadRequest(_))));
     }
     Ok(())
 }
