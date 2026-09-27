@@ -55,3 +55,4 @@ garde = { version = "0.23", default-features = false, features = ["derive"] }
 [dev-dependencies]
 toasty = { version = "0.11", features = ["sqlite", "jiff"] }
 toasty-driver-sqlite = "0.11"
+tower = { version = "0.5", features = ["util"] }

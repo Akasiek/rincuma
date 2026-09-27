@@ -2666,6 +2666,7 @@ dependencies = [
  "toasty-cli",
  "toasty-driver-sqlite",
  "tokio",
+ "tower",
  "tower-http",
  "tracing",
  "tracing-subscriber",

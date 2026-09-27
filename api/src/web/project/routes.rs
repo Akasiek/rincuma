@@ -1,7 +1,10 @@
-use axum::{Router, routing::post};
+use axum::{Router, routing::get};
 
-use crate::{app_state::AppState, web::project::handlers::create};
+use crate::{
+    app_state::AppState,
+    web::project::{create::create, list::list},
+};
 
 pub(crate) fn router() -> Router<AppState> {
-    Router::new().route("/projects", post(create))
+    Router::new().route("/projects", get(list).post(create))
 }
