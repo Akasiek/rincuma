@@ -1,7 +1,7 @@
 use axum::{Json, extract::State, http::StatusCode};
 use garde::Validate;
 
-use super::{CreateProjectRequest, create};
+use super::{SaveProjectRequest, create};
 use crate::{
     db::Project,
     web::{auth::CurrentUser, project::ProjectError, test_support::state_with_user},
@@ -11,7 +11,7 @@ use crate::{
 async fn creates_project_for_current_user() -> Result<(), Box<dyn std::error::Error>> {
     let (state, user) = state_with_user().await?;
     let owner_id = user.id;
-    let request = CreateProjectRequest {
+    let request = SaveProjectRequest {
         name: "  Example project  ".to_owned(),
         description: Some("Description".to_owned()),
         color: Some("#3B82F6".to_owned()),
@@ -44,7 +44,7 @@ async fn rejects_invalid_project_names_and_colors() -> Result<(), Box<dyn std::e
         ("Project", Some("red")),
     ] {
         let (state, user) = state_with_user().await?;
-        let request = CreateProjectRequest {
+        let request = SaveProjectRequest {
             name: name.to_owned(),
             description: None,
             color: color.map(str::to_owned),
@@ -59,7 +59,7 @@ async fn rejects_invalid_project_names_and_colors() -> Result<(), Box<dyn std::e
 #[test]
 fn validates_optional_hex_color() {
     for color in [None, Some("#3B82F6"), Some("#abcdef")] {
-        let request = CreateProjectRequest {
+        let request = SaveProjectRequest {
             name: "Project".to_owned(),
             description: None,
             color: color.map(str::to_owned),
@@ -68,7 +68,7 @@ fn validates_optional_hex_color() {
     }
 
     for color in ["#FFF", "3B82F6", "#3B82FG", "#3B82F6FF", ""] {
-        let request = CreateProjectRequest {
+        let request = SaveProjectRequest {
             name: "Project".to_owned(),
             description: None,
             color: Some(color.to_owned()),

@@ -1,32 +1,20 @@
 use axum::{Json, extract::State, http::StatusCode};
 use garde::Validate;
 use jiff::Timestamp;
-use serde::Deserialize;
 
 use crate::{
     app_state::AppState,
     db::Project,
     web::{
         auth::CurrentUser,
-        project::{ProjectError, response::ProjectResponse},
-        validation::validate_hex_color,
+        project::{ProjectError, request::SaveProjectRequest, response::ProjectResponse},
     },
 };
-
-#[derive(Deserialize, Validate)]
-#[garde(allow_unvalidated)]
-pub(super) struct CreateProjectRequest {
-    #[garde(length(bytes, min = 1, max = 255))]
-    name: String,
-    description: Option<String>,
-    #[garde(inner(custom(validate_hex_color)))]
-    color: Option<String>,
-}
 
 pub(super) async fn create(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
-    Json(mut request): Json<CreateProjectRequest>,
+    Json(mut request): Json<SaveProjectRequest>,
 ) -> Result<(StatusCode, Json<ProjectResponse>), ProjectError> {
     request.name = request.name.trim().to_owned();
     request

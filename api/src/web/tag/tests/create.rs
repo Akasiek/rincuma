@@ -1,6 +1,6 @@
 use axum::{Json, extract::State, http::StatusCode};
 
-use super::{CreateTagRequest, create};
+use super::{SaveTagRequest, create};
 use crate::{
     db::Tag,
     web::{auth::CurrentUser, tag::TagError, test_support::state_with_user},
@@ -10,7 +10,7 @@ use crate::{
 async fn creates_tag_for_current_user() -> Result<(), Box<dyn std::error::Error>> {
     let (state, user) = state_with_user().await?;
     let owner_id = user.id;
-    let request = CreateTagRequest {
+    let request = SaveTagRequest {
         name: "  Example tag  ".to_owned(),
         color: Some("#3B82F6".to_owned()),
     };
@@ -35,7 +35,7 @@ async fn creates_tag_for_current_user() -> Result<(), Box<dyn std::error::Error>
 #[tokio::test]
 async fn creates_tag_without_color() -> Result<(), Box<dyn std::error::Error>> {
     let (state, user) = state_with_user().await?;
-    let request = CreateTagRequest {
+    let request = SaveTagRequest {
         name: "Tag".to_owned(),
         color: None,
     };
@@ -56,7 +56,7 @@ async fn rejects_invalid_tag_names_and_colors() -> Result<(), Box<dyn std::error
         ("Tag", Some("#12345G")),
     ] {
         let (state, user) = state_with_user().await?;
-        let request = CreateTagRequest {
+        let request = SaveTagRequest {
             name: name.to_owned(),
             color: color.map(str::to_owned),
         };
