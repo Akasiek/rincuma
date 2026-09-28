@@ -1,0 +1,2 @@
+DELETE {{baseUrl}}/tags/1
+Cookie: {{sessionCookie}}
