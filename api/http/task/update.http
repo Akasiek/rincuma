@@ -1,0 +1,28 @@
+PUT {{baseUrl}}/tasks/1
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Updated task",
+  "description": "Updated description",
+  "due_at": "2026-10-01T12:00:00Z",
+  "priority": "high",
+  "project_id": null,
+  "parent_id": null,
+  "tag_ids": []
+}
+
+### Clear optional fields and tags
+PUT {{baseUrl}}/tasks/1
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Updated task",
+  "description": null,
+  "due_at": null,
+  "priority": "none",
+  "project_id": null,
+  "parent_id": null,
+  "tag_ids": []
+}

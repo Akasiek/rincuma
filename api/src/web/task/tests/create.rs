@@ -1,14 +1,14 @@
 use axum::{Json, extract::State, http::StatusCode};
 use jiff::Timestamp;
 
-use super::{CreateTaskRequest, create};
+use super::{SaveTaskRequest, create};
 use crate::{
     db::{Project, Tag, Task, TaskPriority, TaskTag, User},
     web::{auth::CurrentUser, task::TaskError, test_support::state_with_user},
 };
 
-fn request(name: &str) -> CreateTaskRequest {
-    CreateTaskRequest {
+fn request(name: &str) -> SaveTaskRequest {
+    SaveTaskRequest {
         name: name.to_owned(),
         description: None,
         due_at: None,
@@ -85,7 +85,7 @@ async fn creates_task_with_owned_relations() -> Result<(), Box<dyn std::error::E
     .exec(&mut db)
     .await?;
     let due_at = now;
-    let request = CreateTaskRequest {
+    let request = SaveTaskRequest {
         name: "  Child task  ".to_owned(),
         description: Some("Description".to_owned()),
         due_at: Some(due_at),
@@ -130,11 +130,11 @@ async fn rejects_invalid_task_input() -> Result<(), Box<dyn std::error::Error>> 
     for request in [
         request("  "),
         request(&"x".repeat(256)),
-        CreateTaskRequest {
+        SaveTaskRequest {
             tag_ids: vec![1, 1],
             ..request("Task")
         },
-        CreateTaskRequest {
+        SaveTaskRequest {
             tag_ids: vec![0],
             ..request("Task")
         },
@@ -195,19 +195,19 @@ async fn rejects_unowned_and_archived_relations() -> Result<(), Box<dyn std::err
     .await?;
 
     for request in [
-        CreateTaskRequest {
+        SaveTaskRequest {
             project_id: Some(other_project.id),
             ..request("Task")
         },
-        CreateTaskRequest {
+        SaveTaskRequest {
             project_id: Some(archived_project.id),
             ..request("Task")
         },
-        CreateTaskRequest {
+        SaveTaskRequest {
             parent_id: Some(other_parent.id),
             ..request("Task")
         },
-        CreateTaskRequest {
+        SaveTaskRequest {
             tag_ids: vec![other_tag.id],
             ..request("Task")
         },
@@ -245,7 +245,7 @@ async fn rejects_parent_from_different_project() -> Result<(), Box<dyn std::erro
     })
     .exec(&mut db)
     .await?;
-    let request = CreateTaskRequest {
+    let request = SaveTaskRequest {
         project_id: Some(project.id),
         parent_id: Some(parent.id),
         ..request("Task")

@@ -1,9 +1,6 @@
-use std::collections::HashSet;
-
 use axum::{Json, extract::State, http::StatusCode};
 use garde::Validate;
 use jiff::Timestamp;
-use serde::Deserialize;
 
 use crate::{
     app_state::AppState,
@@ -13,39 +10,21 @@ use crate::{
         task::{
             TaskError,
             relations::{get_owned_task, validate_active_project, validate_owned_tag},
+            request::SaveTaskRequest,
             response::TaskResponse,
         },
     },
 };
 
-#[derive(Deserialize, Validate)]
-#[garde(allow_unvalidated)]
-pub(super) struct CreateTaskRequest {
-    #[garde(length(bytes, min = 1, max = 255))]
-    name: String,
-    description: Option<String>,
-    due_at: Option<Timestamp>,
-    priority: Option<TaskPriority>,
-    project_id: Option<i64>,
-    parent_id: Option<i64>,
-    #[serde(default)]
-    tag_ids: Vec<i64>,
-}
-
 pub(super) async fn create(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
-    Json(mut request): Json<CreateTaskRequest>,
+    Json(mut request): Json<SaveTaskRequest>,
 ) -> Result<(StatusCode, Json<TaskResponse>), TaskError> {
     request.name = request.name.trim().to_owned();
     request.validate().map_err(|_| TaskError::bad_request())?;
 
     let tag_ids = request.tag_ids;
-    let mut seen = HashSet::new();
-    if tag_ids.iter().any(|&id| id <= 0 || !seen.insert(id)) {
-        return Err(TaskError::bad_request());
-    }
-
     let now = Timestamp::now();
     let mut db = state.db().clone();
     let mut transaction = db.transaction().await?;
