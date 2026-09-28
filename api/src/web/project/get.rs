@@ -18,11 +18,8 @@ pub(super) async fn get_project(
     Path(id): Path<i64>,
 ) -> Result<Json<ProjectResponse>, ProjectError> {
     let mut db = state.db().clone();
-    let project = Project::filter_by_id(id)
-        .first()
-        .exec(&mut db)
+    let project = Project::get_owned(&mut db, id, user.id)
         .await?
-        .filter(|project| project.owner_id == user.id)
         .ok_or_else(ProjectError::related_resource_not_found)?;
 
     Ok(Json(project.into()))

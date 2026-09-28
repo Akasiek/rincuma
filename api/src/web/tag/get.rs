@@ -18,11 +18,8 @@ pub(super) async fn get_tag(
     Path(id): Path<i64>,
 ) -> Result<Json<TagResponse>, TagError> {
     let mut db = state.db().clone();
-    let tag = Tag::filter_by_id(id)
-        .first()
-        .exec(&mut db)
+    let tag = Tag::get_owned(&mut db, id, user.id)
         .await?
-        .filter(|tag| tag.owner_id == user.id)
         .ok_or_else(TagError::related_resource_not_found)?;
 
     Ok(Json(tag.into()))

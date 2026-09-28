@@ -26,11 +26,8 @@ pub(super) async fn update(
         .map_err(|_| ProjectError::bad_request())?;
 
     let mut db = state.db().clone();
-    let mut project = Project::filter_by_id(id)
-        .first()
-        .exec(&mut db)
+    let mut project = Project::get_owned(&mut db, id, user.id)
         .await?
-        .filter(|project| project.owner_id == user.id)
         .ok_or_else(ProjectError::related_resource_not_found)?;
 
     toasty::update!(project {

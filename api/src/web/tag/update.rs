@@ -24,11 +24,8 @@ pub(super) async fn update(
     request.validate().map_err(|_| TagError::bad_request())?;
 
     let mut db = state.db().clone();
-    let mut tag = Tag::filter_by_id(id)
-        .first()
-        .exec(&mut db)
+    let mut tag = Tag::get_owned(&mut db, id, user.id)
         .await?
-        .filter(|tag| tag.owner_id == user.id)
         .ok_or_else(TagError::related_resource_not_found)?;
 
     toasty::update!(tag {

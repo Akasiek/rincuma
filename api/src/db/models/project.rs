@@ -23,3 +23,17 @@ pub(crate) struct Project {
     #[has_many]
     pub(crate) tasks: Deferred<Vec<Task>>,
 }
+
+impl Project {
+    pub(crate) async fn get_owned(
+        executor: &mut dyn toasty::Executor,
+        id: i64,
+        owner_id: i64,
+    ) -> toasty::Result<Option<Self>> {
+        Ok(Self::filter_by_id(id)
+            .first()
+            .exec(executor)
+            .await?
+            .filter(|project| project.owner_id == owner_id))
+    }
+}
