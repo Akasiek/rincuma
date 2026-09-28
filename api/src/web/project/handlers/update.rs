@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-pub(super) async fn update(
+pub(in crate::web::project) async fn update(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
     Path(id): Path<i64>,
@@ -43,5 +43,5 @@ pub(super) async fn update(
 }
 
 #[cfg(test)]
-#[path = "tests/update.rs"]
+#[path = "../tests/update.rs"]
 mod tests;

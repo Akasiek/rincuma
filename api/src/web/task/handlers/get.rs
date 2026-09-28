@@ -13,7 +13,7 @@ use crate::{
     },
 };
 
-pub(super) async fn get_task(
+pub(in crate::web::task) async fn get_task(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
     Path(id): Path<i64>,
@@ -33,5 +33,5 @@ pub(super) async fn get_task(
 }
 
 #[cfg(test)]
-#[path = "tests/get.rs"]
+#[path = "../tests/get.rs"]
 mod tests;

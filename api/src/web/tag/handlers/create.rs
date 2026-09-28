@@ -4,28 +4,25 @@ use jiff::Timestamp;
 
 use crate::{
     app_state::AppState,
-    db::Project,
+    db::Tag,
     web::{
         auth::CurrentUser,
-        project::{ProjectError, request::SaveProjectRequest, response::ProjectResponse},
+        tag::{TagError, request::SaveTagRequest, response::TagResponse},
     },
 };
 
-pub(super) async fn create(
+pub(in crate::web::tag) async fn create(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
-    Json(mut request): Json<SaveProjectRequest>,
-) -> Result<(StatusCode, Json<ProjectResponse>), ProjectError> {
+    Json(mut request): Json<SaveTagRequest>,
+) -> Result<(StatusCode, Json<TagResponse>), TagError> {
     request.name = request.name.trim().to_owned();
-    request
-        .validate()
-        .map_err(|_| ProjectError::bad_request())?;
+    request.validate().map_err(|_| TagError::bad_request())?;
 
     let now = Timestamp::now();
     let mut db = state.db().clone();
-    let project = toasty::create!(Project {
+    let tag = toasty::create!(Tag {
         name: request.name,
-        description: request.description,
         color: request.color,
         owner_id: user.id,
         created_at: now,
@@ -34,9 +31,9 @@ pub(super) async fn create(
     .exec(&mut db)
     .await?;
 
-    Ok((StatusCode::CREATED, Json(project.into())))
+    Ok((StatusCode::CREATED, Json(tag.into())))
 }
 
 #[cfg(test)]
-#[path = "tests/create.rs"]
+#[path = "../tests/create.rs"]
 mod tests;

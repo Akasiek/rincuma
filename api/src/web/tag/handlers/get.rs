@@ -12,7 +12,7 @@ use crate::{
     },
 };
 
-pub(super) async fn get_tag(
+pub(in crate::web::tag) async fn get_tag(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
     Path(id): Path<i64>,
@@ -26,5 +26,5 @@ pub(super) async fn get_tag(
 }
 
 #[cfg(test)]
-#[path = "tests/get.rs"]
+#[path = "../tests/get.rs"]
 mod tests;

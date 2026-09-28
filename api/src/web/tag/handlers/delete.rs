@@ -9,7 +9,7 @@ use crate::{
     web::{auth::CurrentUser, tag::TagError},
 };
 
-pub(super) async fn delete(
+pub(in crate::web::tag) async fn delete(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
     Path(id): Path<i64>,
@@ -34,5 +34,5 @@ pub(super) async fn delete(
 }
 
 #[cfg(test)]
-#[path = "tests/delete.rs"]
+#[path = "../tests/delete.rs"]
 mod tests;

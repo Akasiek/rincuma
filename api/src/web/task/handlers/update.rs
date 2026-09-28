@@ -21,7 +21,7 @@ use crate::{
     },
 };
 
-pub(super) async fn update(
+pub(in crate::web::task) async fn update(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
     Path(id): Path<i64>,
@@ -143,5 +143,5 @@ async fn sync_task_with_tags(
 }
 
 #[cfg(test)]
-#[path = "tests/update.rs"]
+#[path = "../tests/update.rs"]
 mod tests;

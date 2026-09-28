@@ -12,7 +12,7 @@ use crate::{
     },
 };
 
-pub(super) async fn get_project(
+pub(in crate::web::project) async fn get_project(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
     Path(id): Path<i64>,
@@ -26,5 +26,5 @@ pub(super) async fn get_project(
 }
 
 #[cfg(test)]
-#[path = "tests/get.rs"]
+#[path = "../tests/get.rs"]
 mod tests;

@@ -41,7 +41,7 @@ pub(super) enum TaskSort {
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
-pub(super) struct ListTasksQuery {
+pub(in crate::web::task) struct ListTasksQuery {
     status: TaskStatus,
     project_id: Option<i64>,
     priority: Option<TaskPriority>,
@@ -52,7 +52,7 @@ pub(super) struct ListTasksQuery {
     offset: Option<usize>,
 }
 
-pub(super) async fn list(
+pub(in crate::web::task) async fn list(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
     Query(request): Query<ListTasksQuery>,
@@ -202,5 +202,5 @@ async fn fetch_tag_ids_for_tasks(
 }
 
 #[cfg(test)]
-#[path = "tests/list.rs"]
+#[path = "../tests/list.rs"]
 mod tests;

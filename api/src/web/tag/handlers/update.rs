@@ -1,4 +1,7 @@
-use axum::{Json, extract::State, http::StatusCode};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
 use garde::Validate;
 use jiff::Timestamp;
 
@@ -11,29 +14,31 @@ use crate::{
     },
 };
 
-pub(super) async fn create(
+pub(in crate::web::tag) async fn update(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
+    Path(id): Path<i64>,
     Json(mut request): Json<SaveTagRequest>,
-) -> Result<(StatusCode, Json<TagResponse>), TagError> {
+) -> Result<Json<TagResponse>, TagError> {
     request.name = request.name.trim().to_owned();
     request.validate().map_err(|_| TagError::bad_request())?;
 
-    let now = Timestamp::now();
     let mut db = state.db().clone();
-    let tag = toasty::create!(Tag {
+    let mut tag = Tag::get_owned(&mut db, id, user.id)
+        .await?
+        .ok_or_else(TagError::related_resource_not_found)?;
+
+    toasty::update!(tag {
         name: request.name,
         color: request.color,
-        owner_id: user.id,
-        created_at: now,
-        updated_at: now,
+        updated_at: Timestamp::now(),
     })
     .exec(&mut db)
     .await?;
 
-    Ok((StatusCode::CREATED, Json(tag.into())))
+    Ok(Json(tag.into()))
 }
 
 #[cfg(test)]
-#[path = "tests/create.rs"]
+#[path = "../tests/update.rs"]
 mod tests;

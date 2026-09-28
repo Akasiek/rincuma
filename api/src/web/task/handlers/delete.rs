@@ -11,7 +11,7 @@ use crate::{
     web::{auth::CurrentUser, task::TaskError},
 };
 
-pub(super) async fn delete(
+pub(in crate::web::task) async fn delete(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
     Path(id): Path<i64>,
@@ -62,5 +62,5 @@ async fn collect_subtree_ids(
 }
 
 #[cfg(test)]
-#[path = "tests/delete.rs"]
+#[path = "../tests/delete.rs"]
 mod tests;

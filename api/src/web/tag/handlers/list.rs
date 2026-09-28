@@ -26,14 +26,14 @@ pub(super) enum TagSort {
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
-pub(super) struct ListTagsQuery {
+pub(in crate::web::tag) struct ListTagsQuery {
     sort_by: TagSort,
     order: SortOrder,
     limit: Option<usize>,
     offset: Option<usize>,
 }
 
-pub(super) async fn list(
+pub(in crate::web::tag) async fn list(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
     Query(request): Query<ListTagsQuery>,
@@ -84,5 +84,5 @@ fn sorted_tags(
 }
 
 #[cfg(test)]
-#[path = "tests/list.rs"]
+#[path = "../tests/list.rs"]
 mod tests;

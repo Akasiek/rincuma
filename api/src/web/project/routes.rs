@@ -2,7 +2,7 @@ use axum::{Router, routing::get};
 
 use crate::{
     app_state::AppState,
-    web::project::{create::create, delete::delete, get::get_project, list::list, update::update},
+    web::project::handlers::{create, delete, get_project, list, update},
 };
 
 pub(crate) fn router() -> Router<AppState> {

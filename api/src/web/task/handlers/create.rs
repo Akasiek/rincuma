@@ -16,7 +16,7 @@ use crate::{
     },
 };
 
-pub(super) async fn create(
+pub(in crate::web::task) async fn create(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
     Json(mut request): Json<SaveTaskRequest>,
@@ -75,5 +75,5 @@ pub(super) async fn create(
 }
 
 #[cfg(test)]
-#[path = "tests/create.rs"]
+#[path = "../tests/create.rs"]
 mod tests;

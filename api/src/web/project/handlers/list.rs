@@ -35,7 +35,7 @@ pub(super) enum ProjectSort {
 
 #[derive(Deserialize, Default)]
 #[serde(default)]
-pub(super) struct ListProjectsQuery {
+pub(in crate::web::project) struct ListProjectsQuery {
     archived: ArchivedFilter,
     sort_by: ProjectSort,
     order: SortOrder,
@@ -43,7 +43,7 @@ pub(super) struct ListProjectsQuery {
     offset: Option<usize>,
 }
 
-pub(super) async fn list(
+pub(in crate::web::project) async fn list(
     State(state): State<AppState>,
     CurrentUser(user): CurrentUser,
     Query(request): Query<ListProjectsQuery>,
@@ -112,5 +112,5 @@ fn sorted_projects(
 }
 
 #[cfg(test)]
-#[path = "tests/list.rs"]
+#[path = "../tests/list.rs"]
 mod tests;
