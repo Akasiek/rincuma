@@ -1,0 +1,18 @@
+PUT {{baseUrl}}/tags/1
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Updated tag",
+  "color": "#AABBCC"
+}
+
+### Clear color
+PUT {{baseUrl}}/tags/1
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Updated tag",
+  "color": null
+}
