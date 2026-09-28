@@ -9,7 +9,7 @@ use crate::{
         auth::CurrentUser,
         task::{
             TaskError,
-            relations::{get_owned_task, validate_active_project, validate_owned_tag},
+            relations::{validate_active_project, validate_owned_tag},
             request::SaveTaskRequest,
             response::TaskResponse,
         },
@@ -34,7 +34,9 @@ pub(super) async fn create(
     }
 
     if let Some(parent_id) = request.parent_id {
-        let parent = get_owned_task(&mut transaction, parent_id, user.id).await?;
+        let parent = Task::get_owned(&mut transaction, parent_id, user.id)
+            .await?
+            .ok_or_else(TaskError::related_resource_not_found)?;
         if parent.project_id != request.project_id {
             return Err(TaskError::bad_request());
         }

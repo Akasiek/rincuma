@@ -14,7 +14,7 @@ use crate::{
         auth::CurrentUser,
         task::{
             TaskError,
-            relations::{get_owned_task, validate_active_project, validate_owned_tag},
+            relations::{validate_active_project, validate_owned_tag},
             request::SaveTaskRequest,
             response::TaskResponse,
         },
@@ -32,7 +32,9 @@ pub(super) async fn update(
 
     let mut db = state.db().clone();
     let mut transaction = db.transaction().await?;
-    let mut task = get_owned_task(&mut transaction, id, user.id).await?;
+    let mut task = Task::get_owned(&mut transaction, id, user.id)
+        .await?
+        .ok_or_else(TaskError::related_resource_not_found)?;
 
     validate_project_change(&mut transaction, &task, request.project_id).await?;
     validate_parent(&mut transaction, &task, &request).await?;
@@ -99,7 +101,9 @@ async fn validate_parent(
     if parent_id == task.id {
         return Err(TaskError::bad_request());
     }
-    let parent = get_owned_task(executor, parent_id, task.owner_id).await?;
+    let parent = Task::get_owned(executor, parent_id, task.owner_id)
+        .await?
+        .ok_or_else(TaskError::related_resource_not_found)?;
     if parent.project_id != request.project_id {
         return Err(TaskError::bad_request());
     }
@@ -110,7 +114,9 @@ async fn validate_parent(
         if !seen.insert(id) {
             return Err(TaskError::bad_request());
         }
-        let ancestor = get_owned_task(executor, id, task.owner_id).await?;
+        let ancestor = Task::get_owned(executor, id, task.owner_id)
+            .await?
+            .ok_or_else(TaskError::related_resource_not_found)?;
         ancestor_id = ancestor.parent_id;
     }
     Ok(())

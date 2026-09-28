@@ -52,3 +52,17 @@ pub(crate) struct Task {
     #[has_many(via = task_tags.tag)]
     pub(crate) tags: Deferred<Vec<Tag>>,
 }
+
+impl Task {
+    pub(crate) async fn get_owned(
+        executor: &mut dyn toasty::Executor,
+        id: i64,
+        owner_id: i64,
+    ) -> toasty::Result<Option<Self>> {
+        Ok(Self::filter_by_id(id)
+            .first()
+            .exec(executor)
+            .await?
+            .filter(|task| task.owner_id == owner_id))
+    }
+}

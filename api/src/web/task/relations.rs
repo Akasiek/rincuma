@@ -1,31 +1,16 @@
 use crate::{
-    db::{Project, Tag, Task},
+    db::{Project, Tag},
     web::task::TaskError,
 };
-
-pub(super) async fn get_owned_task(
-    executor: &mut dyn toasty::Executor,
-    task_id: i64,
-    owner_id: i64,
-) -> Result<Task, TaskError> {
-    Task::filter_by_id(task_id)
-        .first()
-        .exec(executor)
-        .await?
-        .filter(|task| task.owner_id == owner_id)
-        .ok_or_else(TaskError::related_resource_not_found)
-}
 
 pub(super) async fn validate_active_project(
     executor: &mut dyn toasty::Executor,
     project_id: i64,
     owner_id: i64,
 ) -> Result<(), TaskError> {
-    Project::filter_by_id(project_id)
-        .first()
-        .exec(executor)
+    Project::get_owned(executor, project_id, owner_id)
         .await?
-        .filter(|project| project.owner_id == owner_id && project.archived_at.is_none())
+        .filter(|project| project.archived_at.is_none())
         .ok_or_else(TaskError::related_resource_not_found)
         .map(|_| ())
 }
@@ -35,11 +20,8 @@ pub(super) async fn validate_owned_tag(
     tag_id: i64,
     owner_id: i64,
 ) -> Result<(), TaskError> {
-    Tag::filter_by_id(tag_id)
-        .first()
-        .exec(executor)
+    Tag::get_owned(executor, tag_id, owner_id)
         .await?
-        .filter(|tag| tag.owner_id == owner_id)
         .ok_or_else(TaskError::related_resource_not_found)
         .map(|_| ())
 }

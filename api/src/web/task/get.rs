@@ -6,10 +6,10 @@ use toasty::stmt::{List, Query};
 
 use crate::{
     app_state::AppState,
-    db::TaskTag,
+    db::{Task, TaskTag},
     web::{
         auth::CurrentUser,
-        task::{TaskError, relations::get_owned_task, response::TaskResponse},
+        task::{TaskError, response::TaskResponse},
     },
 };
 
@@ -19,7 +19,9 @@ pub(super) async fn get_task(
     Path(id): Path<i64>,
 ) -> Result<Json<TaskResponse>, TaskError> {
     let mut db = state.db().clone();
-    let task = get_owned_task(&mut db, id, user.id).await?;
+    let task = Task::get_owned(&mut db, id, user.id)
+        .await?
+        .ok_or_else(TaskError::related_resource_not_found)?;
     let task_tags = Query::<List<TaskTag>>::all()
         .filter(TaskTag::fields().task_id().eq(task.id))
         .order_by(TaskTag::fields().tag_id().asc())
