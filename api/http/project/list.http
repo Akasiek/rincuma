@@ -1,0 +1,2 @@
+GET {{baseUrl}}/projects?archived=active&sort_by=created_at&order=desc&limit=50&offset=0
+Cookie: {{sessionCookie}}

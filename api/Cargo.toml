@@ -40,7 +40,7 @@ base64 = "0.23"
 cookie = "0.18"
 getrandom = "0.4"
 sha2 = "0.11"
-jiff = "0.2"
+jiff = { version = "0.2", features = ["serde"] }
 
 axum = "0.8"
 tracing = "0.1"
@@ -50,3 +50,9 @@ listenfd = "1"
 
 toasty = { version = "0.11", features = ["postgresql", "jiff"] }
 toasty-cli = { version = "0.11", optional = true }
+garde = { version = "0.23", default-features = false, features = ["derive"] }
+
+[dev-dependencies]
+toasty = { version = "0.11", features = ["sqlite", "jiff"] }
+toasty-driver-sqlite = "0.11"
+tower = { version = "0.5", features = ["util"] }

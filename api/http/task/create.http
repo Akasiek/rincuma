@@ -1,0 +1,7 @@
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Test Task 1"
+}

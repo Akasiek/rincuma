@@ -1,0 +1,8 @@
+POST {{baseUrl}}/tags
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Test Tag 1",
+  "color": "#3B82F6"
+}

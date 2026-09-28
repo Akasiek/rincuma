@@ -4,3 +4,13 @@ version = 1
 id = 4927549165739228541
 name = "0000_auth.sql"
 snapshot_name = "0000_snapshot.toml"
+
+[[migrations]]
+id = 6900700485581343777
+name = "0001_projects_tasks_tags.sql"
+snapshot_name = "0001_snapshot.toml"
+
+[[migrations]]
+id = 5386066993619227727
+name = "0002_add_color_to_project.sql"
+snapshot_name = "0002_snapshot.toml"

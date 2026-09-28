@@ -1,0 +1,20 @@
+PUT {{baseUrl}}/projects/1
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Updated project",
+  "description": "Updated description",
+  "color": "#AABBCC"
+}
+
+### Clear description and color
+PUT {{baseUrl}}/projects/1
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Updated project",
+  "description": null,
+  "color": null
+}
