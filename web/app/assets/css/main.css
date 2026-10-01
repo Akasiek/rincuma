@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+@theme {
+  --font-serif: "Fraunces", "serif";
+
+  --color-dark-base: hsl(246deg, 24%, 17%);
+  --color-dark-surface: hsl(248deg, 24%, 20%);
+  --color-dark-overlay: hsl(248deg, 21%, 26%);
+  --color-dark-muted: hsl(249deg, 12%, 47%);
+  --color-dark-subtle: hsl(248deg, 15%, 61%);
+  --color-dark-text: hsl(245deg, 50%, 91%);
+  --color-dark-love: hsl(343deg, 76%, 68%);
+  --color-dark-gold: hsl(35deg, 88%, 72%);
+  --color-dark-rose: hsl(2deg, 66%, 75%);
+  --color-dark-pine: hsl(197deg, 48%, 47%);
+  --color-dark-foam: hsl(189deg, 43%, 73%);
+  --color-dark-iris: hsl(267deg, 57%, 78%);
+  --color-dark-highlight-low: hsl(245deg, 22%, 20%);
+  --color-dark-highlight-med: hsl(247deg, 16%, 30%);
+  --color-dark-highlight-high: hsl(249deg, 15%, 38%);
+
+  --color-light-base: hsl(32deg, 57%, 95%);
+  --color-light-surface: hsl(35deg, 100%, 98%);
+  --color-light-overlay: hsl(33deg, 43%, 91%);
+  --color-light-muted: hsl(257deg, 9%, 61%);
+  --color-light-subtle: hsl(248deg, 12%, 52%);
+  --color-light-text: hsl(248deg, 19%, 40%);
+  --color-light-love: hsl(343deg, 35%, 55%);
+  --color-light-gold: hsl(35deg, 81%, 56%);
+  --color-light-rose: hsl(3deg, 53%, 67%);
+  --color-light-pine: hsl(197deg, 53%, 34%);
+  --color-light-foam: hsl(189deg, 30%, 48%);
+  --color-light-iris: hsl(268deg, 21%, 57%);
+  --color-light-highlight-low: hsl(25deg, 35%, 93%);
+  --color-light-highlight-med: hsl(10deg, 9%, 86%);
+  --color-light-highlight-high: hsl(315deg, 4%, 80%);
+}
