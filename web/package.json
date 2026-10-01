@@ -1,0 +1,35 @@
+{
+  "name": "web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxt/fonts": "0.14.0",
+    "@nuxt/hints": "1.1.4",
+    "@nuxt/icon": "2.5.1",
+    "@nuxt/image": "2.1.0",
+    "@nuxt/test-utils": "4.3.2",
+    "@pinia/nuxt": "1.0.2",
+    "@vee-validate/nuxt": "4.15.1",
+    "@vee-validate/yup": "^4.15.1",
+    "@vueuse/nuxt": "15.0.0",
+    "nuxt": "^4.5.2",
+    "nuxt-yup": "^2.4.4",
+    "pinia": "^4.0.3",
+    "vue": "^3.5.43",
+    "vue-router": "^5.3.1",
+    "yup": "^1.7.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
+    "tailwindcss": "^4.3.3"
+  }
+}
