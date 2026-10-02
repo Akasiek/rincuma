@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@internationalized/date": "^3.12.4",
     "@nuxt/fonts": "0.14.0",
     "@nuxt/hints": "1.1.4",
     "@nuxt/icon": "2.5.1",
@@ -28,6 +29,7 @@
     "yup": "^1.7.1"
   },
   "devDependencies": {
+    "@iconify-json/carbon": "^1.2.28",
     "@tailwindcss/vite": "^4.3.3",
     "oxfmt": "^0.71.0",
     "oxlint": "^1.86.0",
