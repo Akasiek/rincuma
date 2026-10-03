@@ -2,7 +2,11 @@
 import ErrorCard from "./ErrorCard.vue";
 
 const open = defineModel<boolean>("open", { default: false });
-const { errors = [], isSubmitting = false } = defineProps<{
+const {
+  formId,
+  errors = [],
+  isSubmitting = false,
+} = defineProps<{
   formId: string;
   errorSummaryId: string;
   errors?: { fieldId?: string; message: string }[];
@@ -12,12 +16,18 @@ const { errors = [], isSubmitting = false } = defineProps<{
 function focusField(fieldId: string) {
   document.getElementById(fieldId)?.focus();
 }
+
+function focusName(event: Event) {
+  event.preventDefault();
+  focusField(`${formId}-name`);
+}
 </script>
 
 <template>
   <BaseModal
     v-model:open="open"
     title="New Task"
+    @open-auto-focus="focusName"
     class="task-creator-modal isolate flex max-h-[calc(100dvh-6rem)] w-[calc(100%-2rem)] max-w-lg flex-col overflow-visible font-serif text-light-text dark:text-dark-text"
   >
     <template v-if="$slots.trigger" #trigger>
