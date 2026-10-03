@@ -108,7 +108,7 @@ function clear() {
         :aria-label="
           formattedDateTime ? `Change date and time: ${formattedDateTime}` : 'Set date and time'
         "
-        class="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 hover:bg-light-highlight-med focus-visible:outline-2 focus-visible:outline-light-love dark:hover:bg-dark-highlight-med dark:focus-visible:outline-dark-love"
+        class="flex cursor-pointer items-center gap-2 rounded-md border-2 border-transparent px-2.5 py-1.5 hover:bg-light-highlight-med focus:border-light-text focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-light-text dark:hover:bg-dark-highlight-med dark:focus:border-dark-text dark:focus-visible:outline-dark-text"
       >
         <Icon name="carbon:calendar" class="size-5" aria-hidden="true" />
         <span v-if="formattedDateTime" class="font-sans text-sm">{{ formattedDateTime }}</span>
