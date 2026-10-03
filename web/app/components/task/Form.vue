@@ -21,7 +21,15 @@ const fieldLabels: Record<keyof SaveTaskRequest, string> = {
   tag_ids: "Tags",
 };
 
+const fieldValidation = {
+  validateOnBlur: false,
+  validateOnChange: false,
+  validateOnInput: false,
+  validateOnModelUpdate: false,
+};
+
 const { handleSubmit, defineField, errors, errorBag, isSubmitting } = useForm<SaveTaskRequest>({
+  validateOnMount: false,
   validationSchema: {
     name: (value: string) => {
       const name = value?.trim() ?? "";
@@ -43,7 +51,7 @@ const { handleSubmit, defineField, errors, errorBag, isSubmitting } = useForm<Sa
   },
 });
 
-const [dueAt] = defineField("due_at");
+const [dueAt] = defineField("due_at", fieldValidation);
 
 const errorMessages = computed<{ fieldId?: string; message: string }[]>(() => {
   const messages: { fieldId?: string; message: string }[] = Object.entries(errorBag.value).flatMap(
@@ -78,6 +86,7 @@ function onSubmit(event: Event) {
     class="flex flex-col rounded-md bg-light-base p-4 pb-10 dark:bg-dark-base"
   >
     <Field
+      v-bind="fieldValidation"
       :id="`${formId}-name`"
       name="name"
       label="Name"
@@ -97,6 +106,7 @@ function onSubmit(event: Event) {
     </div>
 
     <Field
+      v-bind="fieldValidation"
       :id="`${formId}-description`"
       name="description"
       label="Description"
