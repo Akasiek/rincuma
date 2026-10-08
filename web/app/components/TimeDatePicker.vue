@@ -2,9 +2,6 @@
 import {
   CalendarDate,
   Time,
-  fromDate,
-  getLocalTimeZone,
-  toCalendarDate,
   toCalendarDateTime,
   toZoned,
   type DateValue,
@@ -32,42 +29,7 @@ const open = ref(false);
 const selectedDate = shallowRef<DateValue>();
 const selectedTime = shallowRef<TimeValue>();
 const error = ref("");
-const timeZone = ref("UTC");
-const now = useNow({ scheduler: (update) => useIntervalFn(update, 60_000) });
-
-onMounted(() => {
-  timeZone.value = getLocalTimeZone();
-});
-
-const formattedDateTime = computed(() => {
-  if (!dateTime.value) return "";
-  const date = new Date(dateTime.value);
-  const selectedDay = toCalendarDate(fromDate(date, timeZone.value));
-  const currentDay = toCalendarDate(fromDate(now.value, timeZone.value));
-  const dayDifference = selectedDay.compare(currentDay);
-
-  let formattedDate: string;
-  if (Math.abs(dayDifference) <= 1) {
-    const relativeDate = new Intl.RelativeTimeFormat("en-GB", { numeric: "auto" }).format(
-      dayDifference,
-      "day",
-    );
-    formattedDate = relativeDate.charAt(0).toUpperCase() + relativeDate.slice(1);
-  } else {
-    formattedDate = new Intl.DateTimeFormat("en-GB", {
-      dateStyle: "medium",
-      timeZone: timeZone.value,
-    }).format(date);
-  }
-
-  const formattedTime = new Intl.DateTimeFormat("en-GB", {
-    timeStyle: "short",
-    hourCycle: "h23",
-    timeZone: timeZone.value,
-  }).format(date);
-
-  return `${formattedDate}, ${formattedTime}`;
-});
+const { formattedDateTime, timeZone } = useFormattedDateTime(dateTime);
 
 const canApply = computed(() => !!selectedDate.value && !!selectedTime.value);
 
