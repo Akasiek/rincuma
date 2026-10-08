@@ -2,9 +2,9 @@
 
 <template>
   <aside
-    class="h-screen border-r-2 border-light-highlight-med dark:border-dark-highlight-med w-58 bg-light-surface dark:bg-dark-surface p-5"
+    class="sticky top-0 h-screen w-58 border-r-2 border-light-highlight-med bg-light-surface p-5 dark:border-dark-highlight-med dark:bg-dark-surface"
   >
-    <h1 class="font-bold text-3xl">Rincuma</h1>
-    <hr class="border-t-2 w-12" />
+    <h1 class="text-3xl font-bold">Rincuma</h1>
+    <hr class="w-12 border-t-2" />
   </aside>
 </template>
