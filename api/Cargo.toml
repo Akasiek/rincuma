@@ -31,9 +31,9 @@ large_enum_variant = "deny"
 [dependencies]
 dotenvy = "0.15"
 envy = "0.4"
-thiserror = "2.0.20"
+thiserror = "2.0.21"
 serde = { version = "1", features = ["derive"] }
-tokio = { version = "1.53.1", features = ["rt", "rt-multi-thread", "macros", "sync"] }
+tokio = { version = "1.53.2", features = ["rt", "rt-multi-thread", "macros", "sync"] }
 
 argon2 = { version = "0.6", features = ["getrandom"] }
 base64 = "0.23"
