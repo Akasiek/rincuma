@@ -25,6 +25,7 @@ import {
 } from "reka-ui";
 
 const dateTime = defineModel<string | null>({ default: null });
+defineProps<{ compact?: boolean }>();
 const open = ref(false);
 const selectedDate = shallowRef<DateValue>();
 const selectedTime = shallowRef<TimeValue>();
@@ -67,13 +68,24 @@ function clear() {
     <template #trigger>
       <button
         type="button"
+        :title="compact ? formattedDateTime || 'Set date and time' : undefined"
         :aria-label="
           formattedDateTime ? `Change date and time: ${formattedDateTime}` : 'Set date and time'
         "
-        class="flex cursor-pointer items-center gap-2 rounded-md border-2 border-transparent px-2.5 py-1.5 hover:bg-light-highlight-med focus:border-light-text focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-light-text dark:hover:bg-dark-highlight-med dark:focus:border-dark-text dark:focus-visible:outline-dark-text"
+        :class="
+          compact
+            ? 'max-w-full min-w-0 bg-light-gold/10 text-light-gold hover:bg-light-gold/20 dark:bg-dark-gold/10 dark:text-dark-gold dark:hover:bg-dark-gold/20'
+            : 'hover:bg-light-highlight-med dark:hover:bg-dark-highlight-med'
+        "
+        class="flex cursor-pointer items-center gap-2 rounded-md border-2 border-transparent px-2.5 py-1.5 transition-colors focus:border-light-text focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-light-text dark:focus:border-dark-text dark:focus-visible:outline-dark-text"
       >
-        <Icon name="carbon:calendar" class="size-5" aria-hidden="true" />
-        <span v-if="formattedDateTime" class="font-sans text-sm">{{ formattedDateTime }}</span>
+        <Icon name="carbon:calendar" class="size-5 shrink-0" aria-hidden="true" />
+        <span
+          v-if="formattedDateTime"
+          :class="{ 'min-w-0 truncate': compact }"
+          class="font-sans text-sm text-light-text dark:text-dark-text"
+          >{{ formattedDateTime }}</span
+        >
       </button>
     </template>
 
