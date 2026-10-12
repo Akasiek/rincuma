@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SelectModelValue } from "../../../shared/types/select";
 import type { TaskPriority } from "../../../shared/types/task";
+import { taskPriorityOptions } from "~/utils/taskPriorities";
 
 const props = defineProps<{
   id: string;
@@ -11,16 +12,8 @@ const props = defineProps<{
 }>();
 const model = defineModel<TaskPriority | null>({ default: "none" });
 
-const options = [
-  { value: "none", label: "None", iconClass: "text-light-subtle dark:text-dark-subtle" },
-  { value: "low", label: "Low", iconClass: "text-light-pine dark:text-dark-foam" },
-  { value: "medium", label: "Medium", iconClass: "text-light-gold dark:text-dark-gold" },
-  { value: "high", label: "High", iconClass: "text-light-rose dark:text-dark-rose" },
-  { value: "urgent", label: "Urgent", iconClass: "text-light-love dark:text-dark-love" },
-] satisfies { value: TaskPriority; label: string; iconClass: string }[];
-
 function priorityClass(value: SelectModelValue) {
-  return options.find((option) => option.value === value)?.iconClass;
+  return taskPriorityOptions.find((option) => option.value === value)?.color;
 }
 
 const triggerStyle = computed(() =>
@@ -33,7 +26,7 @@ const triggerStyle = computed(() =>
 );
 
 function updatePriority(value: SelectModelValue) {
-  const option = options.find((option) => option.value === value);
+  const option = taskPriorityOptions.find((option) => option.value === value);
   if (option) {
     model.value = option.value;
   }
@@ -47,7 +40,7 @@ function updatePriority(value: SelectModelValue) {
     :trigger-style="triggerStyle"
     label="Priority"
     :model-value="model ?? 'none'"
-    :options="options"
+    :options="taskPriorityOptions"
     @update:model-value="updatePriority"
   >
     <template #trigger>
