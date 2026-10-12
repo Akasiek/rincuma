@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-serif: "Fraunces", "serif";
-  --font-sans: "Sora", "sans-serif";
+  --font-serif: "Fraunces", Georgia, serif;
+  --font-sans: "Sora", sans-serif;
 
   --color-dark-base: hsl(246deg, 24%, 17%);
   --color-dark-surface: hsl(248deg, 24%, 20%);
