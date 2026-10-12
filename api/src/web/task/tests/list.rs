@@ -456,3 +456,130 @@ async fn list_route_requires_authentication() -> Result<(), Box<dyn std::error::
     assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
     Ok(())
 }
+
+#[tokio::test]
+async fn filters_due_interval_before_counting_and_pagination()
+-> Result<(), Box<dyn std::error::Error>> {
+    let (state, user) = state_with_user().await?;
+    let mut db = state.db().clone();
+    let from: Timestamp = "2026-10-11T22:00:00Z".parse()?;
+    let before: Timestamp = "2026-10-18T22:00:00Z".parse()?;
+    let first = insert_due_task(&mut db, user.id, "At start", Some(from), None).await?;
+    let last_due: Timestamp = "2026-10-18T21:59:59Z".parse()?;
+    let last = insert_due_task(&mut db, user.id, "Before end", Some(last_due), None).await?;
+    let earlier: Timestamp = "2026-10-11T21:59:59Z".parse()?;
+    insert_due_task(&mut db, user.id, "Before start", Some(earlier), None).await?;
+    insert_due_task(&mut db, user.id, "At end", Some(before), None).await?;
+    insert_due_task(&mut db, user.id, "No date", None, None).await?;
+    insert_due_task(&mut db, user.id, "Completed", Some(from), Some(from)).await?;
+    let other = toasty::create!(User {
+        email: "interval-other@example.com".to_owned(),
+        password_hash: "unused".to_owned(),
+        created_at: from,
+        updated_at: from,
+    })
+    .exec(&mut db)
+    .await?;
+    insert_due_task(&mut db, other.id, "Other owner", Some(from), None).await?;
+
+    for (offset, expected_id) in [(0, first.id), (1, last.id)] {
+        let response = list_for(
+            &state,
+            user.id,
+            ListTasksQuery {
+                due_from: Some(from),
+                due_before: Some(before),
+                sort_by: TaskSort::DueAt,
+                order: SortOrder::Asc,
+                limit: Some(1),
+                offset: Some(offset),
+                ..ListTasksQuery::default()
+            },
+        )
+        .await?;
+        assert_eq!(response.total, 2);
+        assert_eq!(response.items.len(), 1);
+        assert_eq!(
+            response.items.first().map(|task| task.id),
+            Some(expected_id)
+        );
+    }
+
+    let all_statuses = list_for(
+        &state,
+        user.id,
+        ListTasksQuery {
+            status: TaskStatus::All,
+            due_from: Some(from),
+            due_before: Some(before),
+            ..ListTasksQuery::default()
+        },
+    )
+    .await?;
+    assert_eq!(all_statuses.total, 3);
+    Ok(())
+}
+
+#[tokio::test]
+async fn supports_open_due_intervals() -> Result<(), Box<dyn std::error::Error>> {
+    let (state, user) = state_with_user().await?;
+    let mut db = state.db().clone();
+    let start = Timestamp::from_second(100)?;
+    let end = Timestamp::from_second(200)?;
+    let first = insert_due_task(&mut db, user.id, "First", Some(start), None).await?;
+    let second = insert_due_task(&mut db, user.id, "Second", Some(end), None).await?;
+    insert_due_task(&mut db, user.id, "Unscheduled", None, None).await?;
+
+    for (due_from, due_before, expected_id) in
+        [(Some(end), None, second.id), (None, Some(end), first.id)]
+    {
+        let response = list_for(
+            &state,
+            user.id,
+            ListTasksQuery {
+                due_from,
+                due_before,
+                ..ListTasksQuery::default()
+            },
+        )
+        .await?;
+        assert_eq!(response.total, 1);
+        assert_eq!(
+            response.items.first().map(|task| task.id),
+            Some(expected_id)
+        );
+    }
+    Ok(())
+}
+
+#[tokio::test]
+async fn rejects_empty_or_reversed_due_intervals() -> Result<(), Box<dyn std::error::Error>> {
+    let (state, user) = state_with_user().await?;
+    let from = Timestamp::from_second(200)?;
+    for before in [Timestamp::from_second(100)?, from] {
+        let result = list_for(
+            &state,
+            user.id,
+            ListTasksQuery {
+                due_from: Some(from),
+                due_before: Some(before),
+                ..ListTasksQuery::default()
+            },
+        )
+        .await;
+        assert!(matches!(result, Err(TaskError::BadRequest(_))));
+    }
+    Ok(())
+}
+
+#[test]
+fn parses_due_interval_query_parameters() -> Result<(), Box<dyn std::error::Error>> {
+    let uri: Uri =
+        "/tasks?due_from=2026-10-11T22:00:00Z&due_before=2026-10-18T22:00:00Z".parse()?;
+    let Query(query) = Query::<ListTasksQuery>::try_from_uri(&uri)?;
+    assert_eq!(query.due_from, Some("2026-10-11T22:00:00Z".parse()?));
+    assert_eq!(query.due_before, Some("2026-10-18T22:00:00Z".parse()?));
+    let invalid: Uri = "/tasks?due_from=not-a-date".parse()?;
+    assert!(Query::<ListTasksQuery>::try_from_uri(&invalid).is_err());
+    Ok(())
+}

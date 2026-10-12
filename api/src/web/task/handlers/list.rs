@@ -46,6 +46,8 @@ pub(in crate::web::task) struct ListTasksQuery {
     project_id: Option<i64>,
     priority: Option<TaskPriority>,
     tag_id: Option<i64>,
+    due_from: Option<Timestamp>,
+    due_before: Option<Timestamp>,
     sort_by: TaskSort,
     order: SortOrder,
     limit: Option<usize>,
@@ -59,6 +61,11 @@ pub(in crate::web::task) async fn list(
 ) -> Result<Json<PageResponse<TaskResponse>>, TaskError> {
     let page = Page::new(request.limit, request.offset).ok_or_else(TaskError::bad_request)?;
     if request.project_id.is_some_and(|id| id <= 0) || request.tag_id.is_some_and(|id| id <= 0) {
+        return Err(TaskError::bad_request());
+    }
+    if let (Some(from), Some(before)) = (request.due_from, request.due_before)
+        && from >= before
+    {
         return Err(TaskError::bad_request());
     }
 
@@ -133,6 +140,12 @@ fn filtered_tasks(
     }
     if let Some(tagged_task_ids) = tagged_task_ids {
         query = query.filter(Task::fields().id().in_list(tagged_task_ids));
+    }
+    if let Some(from) = request.due_from {
+        query = query.filter(Task::fields().due_at().ge(Some(from)));
+    }
+    if let Some(before) = request.due_before {
+        query = query.filter(Task::fields().due_at().lt(Some(before)));
     }
     query
 }
