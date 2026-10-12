@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { SaveTaskRequest } from "#shared/types/task";
+
 const { formId, errorSummaryId, submitTask } = defineProps<{
   formId: string;
   errorSummaryId: string;
@@ -52,6 +54,9 @@ const { handleSubmit, defineField, errors, errorBag, isSubmitting } = useForm<Sa
 });
 
 const [dueAt] = defineField("due_at", fieldValidation);
+const [projectId] = defineField("project_id", fieldValidation);
+const [tagIds] = defineField("tag_ids", fieldValidation);
+const [priority] = defineField("priority", fieldValidation);
 
 const errorMessages = computed<{ fieldId?: string; message: string }[]>(() => {
   const messages: { fieldId?: string; message: string }[] = Object.entries(errorBag.value).flatMap(
@@ -100,9 +105,38 @@ function onSubmit(event: Event) {
     />
 
     <div
-      class="mt-1 mb-3 flex w-full items-center justify-between border-y-2 border-light-highlight-med py-2 dark:border-dark-highlight-med"
+      class="mt-1 mb-3 flex w-full min-w-0 items-center gap-1 border-y-2 border-light-highlight-med py-2 dark:border-dark-highlight-med"
     >
-      <TimeDatePicker v-model="dueAt" />
+      <div class="min-w-0 flex-1">
+        <TimeDatePicker v-model="dueAt" compact />
+      </div>
+      <ProjectSelect
+        v-model="projectId"
+        class="min-w-0"
+        :id="`${formId}-project_id`"
+        compact
+        :disabled="isSubmitting"
+        :invalid="!!errors.project_id"
+        :describedby="errors.project_id ? errorSummaryId : undefined"
+      />
+      <TagSelect
+        v-model="tagIds"
+        class="max-w-28 min-w-0"
+        :id="`${formId}-tag_ids`"
+        compact
+        :disabled="isSubmitting"
+        :invalid="!!errors.tag_ids"
+        :describedby="errors.tag_ids ? errorSummaryId : undefined"
+      />
+      <TaskPrioritySelect
+        v-model="priority"
+        class="max-w-28 min-w-0"
+        :id="`${formId}-priority`"
+        compact
+        :disabled="isSubmitting"
+        :invalid="!!errors.priority"
+        :describedby="errors.priority ? errorSummaryId : undefined"
+      />
     </div>
 
     <Field
