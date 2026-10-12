@@ -15,5 +15,5 @@ export function useFormattedDateTime(value: MaybeRefOrGetter<string | null | und
     return formatDateTime(dateTime, now.value, timeZone.value);
   });
 
-  return { formattedDateTime, timeZone };
+  return { formattedDateTime, timeZone, now };
 }
