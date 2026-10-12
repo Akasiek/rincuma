@@ -14,7 +14,7 @@ const { as = "input" } = defineProps<{
       :id="name"
       :name="name"
       :as="as"
-      class="border-2 border-light-highlight-med dark:border-dark-highlight-med rounded-md px-3 py-1.5 focus:dark:outline-0 focus:dark:border-dark-highlight-high"
+      class="rounded-md border-2 border-light-highlight-med px-3 py-1.5 dark:border-dark-highlight-med focus:dark:border-dark-highlight-high focus:dark:outline-0"
       :label="label"
     />
     <ErrorMessage :name="name" />

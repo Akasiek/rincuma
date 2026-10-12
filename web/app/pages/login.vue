@@ -41,11 +41,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center">
+  <div class="flex min-h-screen items-center justify-center">
     <Form
       :validation-schema="schema"
       @submit="onSubmit"
-      class="p-4 flex flex-col gap-6 items-center"
+      class="flex flex-col items-center gap-6 p-4"
     >
       <div>
         <Field name="email" as="input" class="border-2 border-zinc-900" />
@@ -57,12 +57,12 @@ onMounted(async () => {
         <ErrorMessage name="password" />
       </div>
 
-      <div class="text-red-500 font-bold">
+      <div class="font-bold text-red-500">
         {{ loginError }}
       </div>
 
       <div>
-        <button class="border-2 py-1 px-2.5 border-zinc-900">Log in</button>
+        <button class="border-2 border-zinc-900 px-2.5 py-1">Log in</button>
       </div>
     </Form>
   </div>
