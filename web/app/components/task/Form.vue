@@ -100,7 +100,7 @@ function onSubmit(event: Event) {
       :aria-describedby="errors.name ? errorSummaryId : undefined"
       :class="{ 'ring-2 ring-light-love dark:ring-dark-love': errors.name }"
       as="input"
-      class="w-full rounded-md p-4 text-2xl font-black"
+      class="w-full rounded-md p-4 text-2xl font-semibold"
       placeholder="Task name..."
     />
 
