@@ -5,6 +5,13 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
   css: ["~/assets/css/main.css"],
+  fonts: {
+    families: [
+      { name: "Fraunces", weights: ["400 900"] },
+      { name: "Sora", weights: ["400 800"] },
+      { name: "Space Mono", weights: [400] },
+    ],
+  },
   icon: {
     localApiEndpoint: "/_nuxt_icon",
   },
