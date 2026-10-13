@@ -20,6 +20,7 @@
 @theme {
   --font-serif: "Fraunces", Georgia, serif;
   --font-sans: "Sora", sans-serif;
+  --font-mono: "Space Mono", monospace;
 
   --color-dark-base: hsl(246deg, 24%, 17%);
   --color-dark-surface: hsl(248deg, 24%, 20%);
