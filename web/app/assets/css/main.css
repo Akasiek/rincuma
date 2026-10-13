@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+@layer base {
+  :root {
+    --focus-outline-color: var(--color-light-text);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-outline-color);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --focus-outline-color: var(--color-dark-text);
+    }
+  }
+}
+
 @theme {
   --font-serif: "Fraunces", Georgia, serif;
   --font-sans: "Sora", sans-serif;

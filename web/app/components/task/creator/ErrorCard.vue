@@ -28,7 +28,7 @@ const emit = defineEmits<{ focusField: [fieldId: string] }>();
           <button
             v-if="error.fieldId"
             type="button"
-            class="cursor-pointer text-left underline decoration-dotted underline-offset-4 focus-visible:outline-2 focus-visible:outline-current"
+            class="cursor-pointer text-left underline decoration-dotted underline-offset-4"
             @click="emit('focusField', error.fieldId)"
           >
             {{ error.message }}

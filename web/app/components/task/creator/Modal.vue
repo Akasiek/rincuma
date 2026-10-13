@@ -58,7 +58,7 @@ function focusName(event: Event) {
     <button
       type="button"
       aria-label="Close task creator"
-      class="absolute -top-4 -right-4 z-20 flex size-10 -rotate-2 cursor-pointer items-center justify-center rounded-md border-2 border-transparent bg-light-love shadow-[0_0_1em_#00000044] brightness-90 transition hover:scale-105 hover:rotate-0 hover:brightness-100 focus:border-light-text focus:outline-none focus-visible:scale-105 focus-visible:rotate-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-light-text focus-visible:brightness-100 dark:bg-dark-love dark:focus:border-dark-text dark:focus-visible:outline-dark-text"
+      class="absolute -top-4 -right-4 z-20 flex size-10 -rotate-2 cursor-pointer items-center justify-center rounded-md border-2 border-transparent bg-light-love shadow-[0_0_1em_#00000044] brightness-90 transition hover:scale-105 hover:rotate-0 hover:brightness-100 focus-visible:scale-105 focus-visible:rotate-0 focus-visible:brightness-100 dark:bg-dark-love"
       @click="() => (open = false)"
     >
       <Icon name="carbon:close" class="size-8 text-light-base dark:text-dark-base" />
@@ -70,7 +70,7 @@ function focusName(event: Event) {
       :disabled="isSubmitting"
       :aria-busy="isSubmitting"
       aria-label="Save task"
-      class="absolute -right-6 -bottom-4 z-20 flex size-12 rotate-1 cursor-pointer items-center justify-center rounded-md border-2 border-transparent bg-light-base shadow-[0_0_1em_#00000044] brightness-90 transition hover:scale-105 hover:rotate-0 hover:brightness-100 focus:border-light-text focus:outline-none focus-visible:scale-105 focus-visible:rotate-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-light-text focus-visible:brightness-100 disabled:cursor-wait disabled:opacity-60 dark:bg-dark-pine dark:focus:border-dark-text dark:focus-visible:outline-dark-text"
+      class="absolute -right-6 -bottom-4 z-20 flex size-12 rotate-1 cursor-pointer items-center justify-center rounded-md border-2 border-transparent bg-light-base shadow-[0_0_1em_#00000044] brightness-90 transition hover:scale-105 hover:rotate-0 hover:brightness-100 focus-visible:scale-105 focus-visible:rotate-0 focus-visible:brightness-100 disabled:cursor-wait disabled:opacity-60 dark:bg-dark-pine"
     >
       <Icon name="carbon:save" class="size-8 text-light-text dark:text-dark-text" />
     </button>

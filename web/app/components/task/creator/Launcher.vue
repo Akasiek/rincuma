@@ -43,7 +43,7 @@ onKeyStroke(
         type="button"
         aria-label="Create task"
         aria-keyshortcuts="C"
-        class="fixed right-6 bottom-6 z-30 flex cursor-pointer items-center gap-2 rounded-md border-2 border-transparent bg-light-pine px-4 py-3 text-light-base shadow-lg transition hover:brightness-110 focus:border-light-text focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-light-text dark:bg-dark-pine dark:text-dark-text dark:focus:border-dark-text dark:focus-visible:outline-dark-text"
+        class="fixed right-6 bottom-6 z-30 flex cursor-pointer items-center gap-2 rounded-md border-2 border-transparent bg-light-pine px-4 py-3 text-light-base shadow-lg transition hover:brightness-110 dark:bg-dark-pine dark:text-dark-text"
       >
         <Icon name="carbon:add" class="size-6" />
         <span>Add task</span>

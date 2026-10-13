@@ -77,7 +77,7 @@ function clear() {
             ? 'max-w-full min-w-0 bg-light-gold/10 text-light-gold hover:bg-light-gold/20 dark:bg-dark-gold/10 dark:text-dark-gold dark:hover:bg-dark-gold/20'
             : 'hover:bg-light-highlight-med dark:hover:bg-dark-highlight-med'
         "
-        class="flex cursor-pointer items-center gap-2 rounded-md border-2 border-transparent px-2.5 py-1.5 transition-colors focus:border-light-text focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-light-text dark:focus:border-dark-text dark:focus-visible:outline-dark-text"
+        class="flex cursor-pointer items-center gap-2 rounded-md border-2 border-transparent px-2.5 py-1.5 transition-colors"
       >
         <Icon name="carbon:calendar" class="size-5 shrink-0" aria-hidden="true" />
         <span
@@ -104,14 +104,14 @@ function clear() {
           <CalendarHeader class="mb-3 flex items-center justify-between gap-2">
             <CalendarPrev
               aria-label="Previous month"
-              class="cursor-pointer rounded-md p-1.5 hover:bg-light-highlight-med focus-visible:outline-2 focus-visible:outline-light-love dark:hover:bg-dark-highlight-med"
+              class="cursor-pointer rounded-md p-1.5 hover:bg-light-highlight-med dark:hover:bg-dark-highlight-med"
             >
               <Icon name="carbon:chevron-left" class="size-4" aria-hidden="true" />
             </CalendarPrev>
             <CalendarHeading class="text-sm font-bold" />
             <CalendarNext
               aria-label="Next month"
-              class="cursor-pointer rounded-md p-1.5 hover:bg-light-highlight-med focus-visible:outline-2 focus-visible:outline-light-love dark:hover:bg-dark-highlight-med"
+              class="cursor-pointer rounded-md p-1.5 hover:bg-light-highlight-med dark:hover:bg-dark-highlight-med"
             >
               <Icon name="carbon:chevron-right" class="size-4" aria-hidden="true" />
             </CalendarNext>
@@ -144,7 +144,7 @@ function clear() {
                   <CalendarCellTrigger
                     :day="day"
                     :month="month.value"
-                    class="flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-transparent text-sm hover:bg-light-highlight-med focus-visible:outline-2 focus-visible:outline-light-love data-[outside-view]:opacity-40 data-[selected]:bg-light-love data-[selected]:text-light-surface data-[today]:border-light-highlight-med data-[today]:font-black dark:hover:bg-dark-highlight-med dark:data-[selected]:bg-dark-love dark:data-[selected]:text-dark-base dark:data-[today]:border-dark-highlight-med"
+                    class="flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-transparent text-sm hover:bg-light-highlight-med data-[outside-view]:opacity-40 data-[selected]:bg-light-love data-[selected]:text-light-surface data-[today]:border-light-highlight-med data-[today]:font-black dark:hover:bg-dark-highlight-med dark:data-[selected]:bg-dark-love dark:data-[selected]:text-dark-base dark:data-[today]:border-dark-highlight-med"
                   />
                 </CalendarCell>
               </CalendarGridRow>
@@ -174,7 +174,7 @@ function clear() {
               v-for="segment in segments"
               :key="segment.part"
               :part="segment.part"
-              class="rounded-sm px-0.5 font-sans tabular-nums focus:bg-light-highlight-med focus:outline-none dark:focus:bg-dark-highlight-med"
+              class="rounded-sm px-0.5 font-sans tabular-nums focus:bg-light-highlight-med dark:focus:bg-dark-highlight-med"
             >
               {{ segment.value }}
             </TimeFieldInput>

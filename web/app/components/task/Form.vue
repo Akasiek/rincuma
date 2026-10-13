@@ -100,7 +100,7 @@ function onSubmit(event: Event) {
       :aria-describedby="errors.name ? errorSummaryId : undefined"
       :class="{ 'ring-2 ring-light-love dark:ring-dark-love': errors.name }"
       as="input"
-      class="w-full rounded-md p-4 text-2xl font-black focus:outline-0"
+      class="w-full rounded-md p-4 text-2xl font-black"
       placeholder="Task name..."
     />
 
@@ -149,7 +149,7 @@ function onSubmit(event: Event) {
       :aria-describedby="errors.description ? errorSummaryId : undefined"
       :class="{ 'ring-2 ring-light-love dark:ring-dark-love': errors.description }"
       as="textarea"
-      class="max-h-80 min-h-26 w-full rounded-md px-4 py-2 text-lg focus:outline-0"
+      class="max-h-80 min-h-26 w-full rounded-md px-4 py-2 text-lg"
       placeholder="Something more?"
     />
   </form>

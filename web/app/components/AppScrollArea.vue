@@ -9,7 +9,7 @@ defineProps<{ label: string }>();
     <ScrollAreaViewport
       :aria-label="label"
       role="region"
-      class="size-full overscroll-contain focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-light-pine dark:focus-visible:outline-dark-foam"
+      class="size-full overscroll-contain focus-visible:-outline-offset-2"
     >
       <slot />
     </ScrollAreaViewport>

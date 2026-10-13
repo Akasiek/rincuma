@@ -78,7 +78,7 @@ function updateValue(value: SelectOptionValue | SelectOptionValue[]) {
             : 'w-full justify-between border-light-highlight-med px-3 py-2 hover:bg-light-highlight-med dark:border-dark-highlight-med dark:hover:bg-dark-highlight-med',
           triggerClass,
         ]"
-        class="relative flex max-w-full min-w-0 cursor-pointer items-center gap-2 rounded-md border-2 text-left font-sans text-sm transition-colors focus:border-light-text focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-light-text disabled:cursor-not-allowed disabled:opacity-50 dark:focus:border-dark-text dark:focus-visible:outline-dark-text"
+        class="relative flex max-w-full min-w-0 cursor-pointer items-center gap-2 rounded-md border-2 text-left font-sans text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       >
         <slot v-if="compact" name="trigger">
           {{ selectedLabels || placeholder }}
@@ -106,7 +106,7 @@ function updateValue(value: SelectOptionValue | SelectOptionValue[]) {
               v-for="option in options"
               :key="option.value ?? 'none'"
               :value="option.value"
-              class="relative flex cursor-pointer items-center rounded-sm py-2 pr-8 pl-2 wrap-anywhere outline-none select-none data-highlighted:bg-light-highlight-med dark:data-highlighted:bg-dark-highlight-med"
+              class="relative flex cursor-pointer items-center rounded-sm py-2 pr-8 pl-2 wrap-anywhere select-none focus-visible:-outline-offset-2 data-highlighted:bg-light-highlight-med dark:data-highlighted:bg-dark-highlight-med"
             >
               <slot name="option-icon" :option="option" />
               <SelectItemText>{{ option.label }}</SelectItemText>
