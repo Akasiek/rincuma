@@ -1,3 +1,9 @@
+<script setup lang="ts">
+defineOptions({ name: "AllTasksPage" });
+</script>
+
 <template>
-  <LeftSideBar />
+  <TaskWorkspace>
+    <TaskList />
+  </TaskWorkspace>
 </template>
