@@ -24,6 +24,7 @@ pub(crate) struct Task {
 
     pub(crate) name: String,
     pub(crate) description: Option<String>,
+    #[index]
     pub(crate) due_at: Option<Timestamp>,
     pub(crate) completed_at: Option<Timestamp>,
     pub(crate) created_at: Timestamp,
@@ -54,6 +55,31 @@ pub(crate) struct Task {
 }
 
 impl Task {
+    /// Returns a batch of incomplete tasks for one owner, ordered by task ID.
+    ///
+    /// Only tasks with `due_at >= start` and `due_at < before` are included.
+    /// Tasks without a due date are excluded. Pass `0` for the first batch,
+    /// then the last returned task ID to exclude previously processed tasks.
+    /// An empty batch ends the scan for this owner and due-date range.
+    pub(crate) async fn find_due_batch_after_task_id(
+        executor: &mut dyn toasty::Executor,
+        owner_id: i64,
+        start: Timestamp,
+        before: Timestamp,
+        last_processed_task_id: i64,
+        limit: usize,
+    ) -> toasty::Result<Vec<Self>> {
+        Self::filter(Self::fields().owner_id().eq(owner_id))
+            .filter(Self::fields().completed_at().is_none())
+            .filter(Self::fields().due_at().ge(Some(start)))
+            .filter(Self::fields().due_at().lt(Some(before)))
+            .filter(Self::fields().id().gt(last_processed_task_id))
+            .order_by(Self::fields().id().asc())
+            .limit(limit)
+            .exec(executor)
+            .await
+    }
+
     pub(crate) async fn get_owned(
         executor: &mut dyn toasty::Executor,
         id: i64,

@@ -1,3 +1,4 @@
+use super::notifications;
 use crate::app_state::AppState;
 use crate::web::{auth, project, tag, task};
 use axum::Router;
@@ -14,6 +15,7 @@ pub fn get_app_router(state: AppState) -> Router {
         .merge(task::router())
         .merge(project::router())
         .merge(tag::router())
+        .merge(notifications::router())
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
                 let matched_path = request

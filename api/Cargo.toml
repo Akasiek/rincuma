@@ -33,7 +33,7 @@ dotenvy = "0.15"
 envy = "0.4"
 thiserror = "2.0.21"
 serde = { version = "1", features = ["derive"] }
-tokio = { version = "1.53.2", features = ["rt", "rt-multi-thread", "macros", "sync"] }
+tokio = { version = "1.53.2", features = ["rt", "rt-multi-thread", "macros", "sync", "time"] }
 
 argon2 = { version = "0.6", features = ["getrandom"] }
 base64 = "0.23"
@@ -47,6 +47,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tower-http = { version = "0.7.1", features = ["trace"] }
 listenfd = "1"
+reqwest = { version = "0.13", default-features = false, features = ["rustls"] }
 
 toasty = { version = "0.11", features = ["postgresql", "jiff"] }
 toasty-cli = { version = "0.11", optional = true }

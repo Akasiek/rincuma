@@ -1,0 +1,19 @@
+### Read notification settings
+GET {{baseUrl}}/notifications/settings
+Cookie: {{sessionCookie}}
+
+### Configure ntfy (use the authenticated session cookie)
+PUT {{baseUrl}}/notifications/settings
+Cookie: {{sessionCookie}}
+Content-Type: application/json
+
+{
+  "provider": "ntfy",
+  "enabled": true,
+  "url": "https://ntfy.example.com/rincuma-tasks",
+  "authorization": "Bearer tk_example"
+}
+
+### Remove the notification destination
+DELETE {{baseUrl}}/notifications/settings
+Cookie: {{sessionCookie}}

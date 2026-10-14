@@ -5,6 +5,7 @@ mod app_state;
 mod auth;
 mod config;
 mod db;
+mod notifications;
 mod tracer;
 mod web;
 
@@ -16,7 +17,11 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let db = db::connect(&config).await?;
     let state = AppState::new(config, db);
 
-    web::run(state).await?;
+    let notification_worker = notifications::worker::spawn(state.clone())?;
+    let web_server_result = web::run(state).await;
+
+    notification_worker.abort();
+    web_server_result?;
 
     Ok(())
 }

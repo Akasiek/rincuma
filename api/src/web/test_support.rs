@@ -4,7 +4,7 @@ use jiff::Timestamp;
 
 use crate::{app_state::AppState, config::AppConfig, db::User};
 
-pub(super) async fn state_with_user() -> toasty::Result<(AppState, User)> {
+pub(crate) async fn state_with_user() -> toasty::Result<(AppState, User)> {
     let mut db = toasty::Db::builder()
         .models(toasty::models!(crate::*))
         .build(toasty_driver_sqlite::Sqlite::in_memory())
