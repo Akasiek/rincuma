@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { SubmissionHandler } from "vee-validate";
 
+useHead({ title: "Log in" });
+
 const { object, string } = useYup();
 const { login } = useAuth();
 const { isLoggedIn } = useUserStore();

@@ -1,5 +1,9 @@
 <script setup lang="ts">
 const userStore = useUserStore();
+
+useHead({
+  titleTemplate: (title) => (title ? `${title} · Rincuma` : "Rincuma"),
+});
 </script>
 
 <template>

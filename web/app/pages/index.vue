@@ -1,5 +1,6 @@
 <script setup lang="ts">
 defineOptions({ name: "AllTasksPage" });
+useHead({ title: "All tasks" });
 </script>
 
 <template>

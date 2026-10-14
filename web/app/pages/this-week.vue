@@ -1,5 +1,6 @@
 <script setup lang="ts">
 defineOptions({ name: "NextSevenDaysPage" });
+useHead({ title: "Next 7 days" });
 </script>
 
 <template>
