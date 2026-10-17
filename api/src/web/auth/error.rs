@@ -15,6 +15,10 @@ pub(crate) enum AuthError {
     Conflict,
     #[error("authentication required")]
     Unauthorized,
+    #[error("profile changed during the request")]
+    StaleProfile,
+    #[error("current password is incorrect")]
+    InvalidPassword,
     #[error("internal authentication error")]
     Internal,
     #[error("authentication database operation failed")]
@@ -31,6 +35,8 @@ impl IntoResponse for AuthError {
             Self::BadRequest => StatusCode::BAD_REQUEST,
             Self::Conflict => StatusCode::CONFLICT,
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
+            Self::InvalidPassword => StatusCode::FORBIDDEN,
+            Self::StaleProfile => StatusCode::PRECONDITION_FAILED,
             Self::Internal | Self::Database(_) | Self::Password(_) | Self::Session(_) => {
                 error!(error = ?self, "authentication request failed");
                 StatusCode::INTERNAL_SERVER_ERROR
