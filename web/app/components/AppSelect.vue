@@ -2,6 +2,7 @@
 import type { CSSProperties } from "vue";
 import type { SelectModelValue, SelectOption, SelectOptionValue } from "#shared/types/select.ts";
 import {
+  Label,
   SelectContent,
   SelectItem,
   SelectItemIndicator,
@@ -16,6 +17,7 @@ import {
 const props = defineProps<{
   id: string;
   label: string;
+  hideLabel?: boolean;
   modelValue: SelectModelValue;
   options: SelectOption[];
   multiple?: boolean;
@@ -28,7 +30,10 @@ const props = defineProps<{
   triggerStyle?: CSSProperties;
 }>();
 
-const emit = defineEmits<{ "update:modelValue": [value: SelectModelValue] }>();
+const emit = defineEmits<{
+  "update:modelValue": [value: SelectModelValue];
+  blur: [event: FocusEvent];
+}>();
 
 const selectedOptions = computed(() => {
   const values = Array.isArray(props.modelValue) ? props.modelValue : [props.modelValue];
@@ -49,7 +54,8 @@ function updateValue(value: SelectOptionValue | SelectOptionValue[]) {
 
 <template>
   <div class="min-w-0">
-    <label
+    <Label
+      v-if="!hideLabel"
       :for="id"
       :class="
         compact
@@ -58,7 +64,7 @@ function updateValue(value: SelectOptionValue | SelectOptionValue[]) {
       "
     >
       {{ label }}
-    </label>
+    </Label>
     <SelectRoot
       :model-value="modelValue"
       :multiple="multiple"
@@ -67,6 +73,7 @@ function updateValue(value: SelectOptionValue | SelectOptionValue[]) {
     >
       <SelectTrigger
         :id="id"
+        @blur="emit('blur', $event)"
         :aria-invalid="invalid"
         :aria-describedby="describedby"
         :aria-label="compact ? `${label}: ${selectedLabels || placeholder || 'None'}` : undefined"
@@ -106,7 +113,8 @@ function updateValue(value: SelectOptionValue | SelectOptionValue[]) {
               v-for="option in options"
               :key="option.value ?? 'none'"
               :value="option.value"
-              class="relative flex cursor-pointer items-center rounded-sm py-2 pr-8 pl-2 wrap-anywhere select-none focus-visible:-outline-offset-2 data-highlighted:bg-light-highlight-med dark:data-highlighted:bg-dark-highlight-med"
+              :disabled="option.disabled"
+              class="relative flex cursor-pointer items-center rounded-sm py-2 pr-8 pl-2 wrap-anywhere select-none focus-visible:-outline-offset-2 data-disabled:cursor-not-allowed data-disabled:opacity-50 data-highlighted:bg-light-highlight-med dark:data-highlighted:bg-dark-highlight-med"
             >
               <slot name="option-icon" :option="option" />
               <SelectItemText>{{ option.label }}</SelectItemText>
