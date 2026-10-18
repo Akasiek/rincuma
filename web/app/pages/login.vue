@@ -29,7 +29,7 @@ const onSubmit: SubmissionHandler = async (values) => {
 
     await navigateTo("/");
   } catch {
-    loginError.value = "Nie udało się zalogować. Sprawdź dane i spróbuj ponownie.";
+    loginError.value = "Could not log in. Check your credentials and try again.";
   } finally {
     isSubmitting.value = false;
   }
@@ -43,29 +43,44 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center">
+  <main class="flex min-h-screen items-center justify-center px-4">
     <Form
       :validation-schema="schema"
+      novalidate
+      :aria-busy="isSubmitting"
+      class="w-full max-w-sm rounded-lg border border-light-highlight-med bg-light-surface p-6 dark:border-dark-highlight-med dark:bg-dark-surface"
       @submit="onSubmit"
-      class="flex flex-col items-center gap-6 p-4"
     >
-      <div>
-        <Field name="email" as="input" class="border-2 border-zinc-900" />
-        <ErrorMessage name="email" />
-      </div>
-
-      <div>
-        <Field name="password" as="input" type="password" class="border-2 border-zinc-900" />
-        <ErrorMessage name="password" />
-      </div>
-
-      <div class="font-bold text-red-500">
-        {{ loginError }}
-      </div>
-
-      <div>
-        <button class="border-2 border-zinc-900 px-2.5 py-1">Log in</button>
-      </div>
+      <h1 class="mb-6 text-center text-4xl font-black">Rincuma</h1>
+      <fieldset :disabled="isSubmitting" class="space-y-6">
+        <legend class="sr-only">Login credentials</legend>
+        <FormField
+          id="login-email"
+          name="email"
+          label="Email"
+          type="email"
+          autocomplete="username"
+          autocapitalize="none"
+          spellcheck="false"
+        />
+        <FormField
+          id="login-password"
+          name="password"
+          label="Password"
+          type="password"
+          autocomplete="current-password"
+        />
+        <p
+          v-if="loginError"
+          role="alert"
+          class="font-sans text-sm text-light-love dark:text-dark-love"
+        >
+          {{ loginError }}
+        </p>
+        <Button type="submit" variant="primary" full-width :loading="isSubmitting">{{
+          isSubmitting ? "Logging in…" : "Log in"
+        }}</Button>
+      </fieldset>
     </Form>
-  </div>
+  </main>
 </template>

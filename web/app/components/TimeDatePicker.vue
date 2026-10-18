@@ -192,12 +192,7 @@ function clear() {
         <Button v-if="dateTime" @click="clear">Clear</Button>
         <div class="ml-auto flex gap-2">
           <Button @click="open = false">Cancel</Button>
-          <Button
-            :disabled="!canApply"
-            class="disabled:cursor-not-allowed disabled:opacity-50"
-            @click="apply"
-            >Apply</Button
-          >
+          <Button :disabled="!canApply" @click="apply">Apply</Button>
         </div>
       </div>
     </div>
