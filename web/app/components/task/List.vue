@@ -12,28 +12,25 @@ const props = withDefaults(defineProps<{ title?: string; filters?: TaskFilters }
 });
 
 const { listTasks, getTaskListKey, refreshTaskLists } = useTask();
-const { now, timeZone, isTimeZoneReady } = useFormattedDateTime(null);
+const { now, timeZone } = useFormattedDateTime(null);
 
 const query = computed(() => resolveTaskFilters(props.filters, now.value, timeZone.value));
 const taskListKey = computed(() => getTaskListKey(query.value));
-const {
-  data: tasks,
-  status,
-  error,
-  refresh,
-} = await useAsyncData(taskListKey, () => listTasks(query.value), {
-  default: () => [],
-  lazy: true,
-});
+const { data, status, error, refresh } = await useAsyncData(taskListKey, () =>
+  listTasks(query.value),
+);
 
+const tasks = computed(() => data.value ?? []);
+const hasLoadedTasks = computed(() => data.value !== undefined);
 const collapsedGroups = ref<string[]>(["completed"]);
 const groups = computed(() => groupTasks(tasks.value, now.value, timeZone.value));
 const activeCount = computed(() => tasks.value.filter((task) => !task.completed_at).length);
 const completedCount = computed(() => tasks.value.length - activeCount.value);
-const loading = computed(() => status.value === "pending" || !isTimeZoneReady.value);
+const refreshing = computed(() => status.value === "pending");
+const loading = computed(() => refreshing.value && !hasLoadedTasks.value);
 
 async function updateTask(updatedTask: Task) {
-  tasks.value = tasks.value
+  data.value = tasks.value
     .map((task) => (task.id === updatedTask.id ? updatedTask : task))
     .filter((task) => {
       const status = query.value.status ?? "all";
@@ -57,7 +54,7 @@ function toggleGroup(id: string) {
 </script>
 
 <template>
-  <main class="min-h-0 min-w-0 flex-1 overflow-hidden" :aria-busy="loading">
+  <main class="min-h-0 min-w-0 flex-1 overflow-hidden" :aria-busy="refreshing">
     <AppScrollArea class="h-full" :label="title">
       <div class="px-4 py-8 pb-28 sm:px-8 lg:px-12 lg:py-12 lg:pb-28">
         <div class="mx-auto max-w-4xl">
@@ -66,7 +63,7 @@ function toggleGroup(id: string) {
             :total="tasks.length"
             :active-count="activeCount"
             :completed-count="completedCount"
-            :loaded="status === 'success' && isTimeZoneReady"
+            :loaded="hasLoadedTasks"
           />
           <State
             :loading="loading"

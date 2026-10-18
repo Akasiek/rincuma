@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const userStore = useUserStore();
+const { isTimeZoneReady } = useTimeZone();
+const isPageReady = computed(() => !userStore.isLoggedIn || isTimeZoneReady.value);
 const { open: confirmationOpen, saving, finish } = useNavigationConfirmation();
 
 useHead({
@@ -9,8 +11,12 @@ useHead({
 
 <template>
   <div class="bg-light-base font-serif text-light-text dark:bg-dark-base dark:text-dark-text">
-    <NuxtPage />
-    <TaskCreatorLauncher v-if="userStore.isLoggedIn" />
+    <NuxtPage :key="isPageReady ? 'ready' : 'waiting-for-time-zone'" v-slot="{ Component }">
+      <component :is="Component" v-if="isPageReady" />
+    </NuxtPage>
+    <template v-if="isPageReady">
+      <TaskCreatorLauncher v-if="userStore.isLoggedIn" />
+    </template>
     <UnsavedChangesModal v-model:open="confirmationOpen" :saving="saving" @decision="finish" />
   </div>
 </template>
