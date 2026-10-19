@@ -5,6 +5,7 @@ type LoginCredentials = {
 
 export function useAuth() {
   const userStore = useUserStore();
+  const dictionariesStore = useDictionariesStore();
   const requestFetch = useRequestFetch();
 
   async function login(credentials: LoginCredentials) {
@@ -22,6 +23,8 @@ export function useAuth() {
     });
 
     userStore.clearUser();
+    dictionariesStore.clear();
+    clearNuxtData();
   }
 
   async function fetchCurrentUser() {
