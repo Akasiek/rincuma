@@ -34,11 +34,16 @@ pub(in crate::web::task) async fn create(
     }
 
     if let Some(parent_id) = request.parent_id {
-        let parent = Task::get_owned(&mut transaction, parent_id, user.id)
+        let parent = Task::lock_owned(&mut transaction, parent_id, user.id)
             .await?
             .ok_or_else(TaskError::related_resource_not_found)?;
         if parent.project_id != request.project_id {
             return Err(TaskError::bad_request());
+        }
+        if parent.series_id.is_some() {
+            return Err(TaskError::conflict(
+                "A recurring task cannot have subtasks.",
+            ));
         }
     }
 

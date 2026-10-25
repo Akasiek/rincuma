@@ -31,6 +31,8 @@ pub(crate) enum ResourceError<R: ResourceName> {
     BadRequest(PhantomData<R>),
     #[error("related resource not found")]
     RelatedResourceNotFound(PhantomData<R>),
+    #[error("{0}")]
+    Conflict(&'static str, PhantomData<R>),
     #[error("{} database operation failed", R::NAME)]
     Database(#[source] toasty::Error, PhantomData<R>),
 }
@@ -42,6 +44,10 @@ impl<R: ResourceName> ResourceError<R> {
 
     pub(crate) fn related_resource_not_found() -> Self {
         Self::RelatedResourceNotFound(PhantomData)
+    }
+
+    pub(crate) fn conflict(message: &'static str) -> Self {
+        Self::Conflict(message, PhantomData)
     }
 }
 
@@ -56,11 +62,16 @@ impl<R: ResourceName> IntoResponse for ResourceError<R> {
         let status = match &self {
             Self::BadRequest(_) => StatusCode::BAD_REQUEST,
             Self::RelatedResourceNotFound(_) => StatusCode::NOT_FOUND,
+            Self::Conflict(..) => StatusCode::CONFLICT,
             Self::Database(..) => {
                 error!(error = ?self, "{} request failed", R::NAME);
                 StatusCode::INTERNAL_SERVER_ERROR
             }
         };
+
+        if let Self::Conflict(message, _) = self {
+            return (status, message).into_response();
+        }
 
         status.into_response()
     }

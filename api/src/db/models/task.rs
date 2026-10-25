@@ -66,6 +66,29 @@ pub(crate) struct Task {
 }
 
 impl Task {
+    /// Locks an owned task until the enclosing transaction ends, then reads it.
+    ///
+    /// Toasty has no locking query builder. Assigning the audit timestamp to
+    /// itself acquires a write lock without changing its stored value. Reading
+    /// after that write observes any completion committed by a competing request.
+    pub(crate) async fn lock_owned(
+        executor: &mut dyn toasty::Executor,
+        id: i64,
+        owner_id: i64,
+    ) -> toasty::Result<Option<Self>> {
+        // Raw SQL avoids Toasty's unsupported timestamp-column assignment lowering.
+        // Both PostgreSQL and SQLite accept these numbered dollar placeholders.
+        toasty::sql::statement(
+            "UPDATE tasks SET updated_at = updated_at WHERE id = $1 AND owner_id = $2",
+        )
+        .bind(id)
+        .bind(owner_id)
+        .exec(executor)
+        .await?;
+
+        Self::get_owned(executor, id, owner_id).await
+    }
+
     /// Returns a batch of incomplete tasks for one owner, ordered by task ID.
     ///
     /// Only tasks with `due_at >= start` and `due_at < before` are included.

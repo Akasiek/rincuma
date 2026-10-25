@@ -9,7 +9,11 @@ use crate::{
     db::{Task, TaskTag},
     web::{
         auth::CurrentUser,
-        task::{TaskError, response::TaskResponse},
+        task::{
+            TaskError,
+            completion::{complete_locked, reopen_locked},
+            response::TaskResponse,
+        },
     },
 };
 
@@ -37,26 +41,22 @@ async fn set_completion(
 ) -> Result<Json<TaskResponse>, TaskError> {
     let mut db = state.db().clone();
     let mut transaction = db.transaction().await?;
-    let mut task = Task::get_owned(&mut transaction, id, owner_id)
+    let mut task = Task::lock_owned(&mut transaction, id, owner_id)
         .await?
         .ok_or_else(TaskError::related_resource_not_found)?;
 
-    if task.completed_at.is_some() != completed {
-        let now = Timestamp::now();
-        toasty::update!(task {
-            completed_at: completed.then_some(now),
-            updated_at: now,
-        })
-        .exec(&mut transaction)
-        .await?;
-    }
-
-    let tag_ids = TaskTag::filter_by_task_id(task.id)
+    let tag_ids: Vec<i64> = TaskTag::filter_by_task_id(task.id)
         .exec(&mut transaction)
         .await?
         .into_iter()
         .map(|link| link.tag_id)
         .collect();
+
+    if completed {
+        complete_locked(&mut transaction, &mut task, &tag_ids, Timestamp::now()).await?;
+    } else {
+        reopen_locked(&mut transaction, &mut task, Timestamp::now()).await?;
+    }
 
     transaction.commit().await?;
     Ok(Json(TaskResponse::new(task, tag_ids)))

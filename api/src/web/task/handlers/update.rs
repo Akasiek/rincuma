@@ -101,11 +101,16 @@ async fn validate_parent(
     if parent_id == task.id {
         return Err(TaskError::bad_request());
     }
-    let parent = Task::get_owned(executor, parent_id, task.owner_id)
+    let parent = Task::lock_owned(executor, parent_id, task.owner_id)
         .await?
         .ok_or_else(TaskError::related_resource_not_found)?;
     if parent.project_id != request.project_id {
         return Err(TaskError::bad_request());
+    }
+    if parent.series_id.is_some() {
+        return Err(TaskError::conflict(
+            "A recurring task cannot have subtasks.",
+        ));
     }
 
     let mut seen = HashSet::from([task.id, parent.id]);

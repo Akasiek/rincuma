@@ -1,3 +1,4 @@
+mod completion;
 mod handlers;
 mod relations;
 mod request;
