@@ -1,14 +1,36 @@
 <script setup lang="ts">
-import type { Task, SaveTaskRequest } from "#shared/types/task";
+import type { SaveTaskRequest } from "#shared/types/task";
 import TaskForm from "./Form.vue";
 import TaskModal from "./Modal.vue";
 
 const props = defineProps<{ taskId: number | null }>();
 const emit = defineEmits<{ close: []; saved: [] }>();
 const { getTask, updateTask, refreshTaskLists } = useTask();
-const task = shallowRef<Task | null>(null);
-const loading = ref(false);
-const loadError = ref("");
+const userStore = useUserStore();
+const taskRequest = useAsyncData(
+  `task-editor:${userStore.user?.id ?? "guest"}:${props.taskId}`,
+  () => {
+    if (props.taskId === null) {
+      throw createError({ status: 400, message: "This task link is invalid." });
+    }
+
+    return getTask(props.taskId);
+  },
+);
+const { data: task, status, error: taskError, refresh } = taskRequest;
+const loading = computed(() => status.value === "pending");
+const loadError = computed(() => {
+  if (props.taskId === null) {
+    return "This task link is invalid.";
+  }
+  if (!taskError.value) {
+    return "";
+  }
+
+  return taskError.value.status === 404
+    ? "This task is no longer available."
+    : "Could not load this task. Please try again.";
+});
 const saveError = ref("");
 const validationErrors = ref<{ fieldId?: string; message: string }[]>([]);
 const isSubmitting = ref(false);
@@ -16,13 +38,14 @@ const dirty = ref(false);
 const saved = ref(false);
 const formId = useId();
 const errorSummaryId = `${formId}-errors`;
-let disposed = false;
+onScopeDispose(taskRequest.clear);
 
 useUnsavedChanges({
   dirty: computed(() => dirty.value && !saved.value),
   saving: computed(() => isSubmitting.value && !saved.value),
   shouldConfirm: (to, from) => to.path !== from.path || to.query.task !== from.query.task,
 });
+
 const errors = computed(() => {
   const messages = [...validationErrors.value];
   if (saveError.value) {
@@ -30,40 +53,6 @@ const errors = computed(() => {
   }
   return messages;
 });
-
-async function loadTask() {
-  if (loading.value) {
-    return;
-  }
-  if (props.taskId === null) {
-    loadError.value = "This task link is invalid.";
-    return;
-  }
-
-  loading.value = true;
-  loadError.value = "";
-
-  try {
-    const loaded = await getTask(props.taskId);
-    if (disposed) {
-      return;
-    }
-
-    task.value = loaded;
-  } catch (error) {
-    if (disposed) {
-      return;
-    }
-
-    const status = (error as { response?: { status?: number } })?.response?.status;
-    loadError.value =
-      status === 404
-        ? "This task is no longer available."
-        : "Could not load this task. Please try again.";
-  } finally {
-    loading.value = false;
-  }
-}
 
 async function saveTask(values: SaveTaskRequest) {
   if (!task.value) {
@@ -87,10 +76,7 @@ async function saveTask(values: SaveTaskRequest) {
   await refreshTaskLists();
 }
 
-onMounted(loadTask);
-onScopeDispose(() => {
-  disposed = true;
-});
+await taskRequest;
 </script>
 
 <template>
@@ -109,7 +95,9 @@ onScopeDispose(() => {
       <p role="alert" class="font-sans text-sm text-light-love dark:text-dark-love">
         {{ loadError }}
       </p>
-      <Button v-if="taskId !== null" size="sm" class="mt-4" @click="loadTask">Try again</Button>
+      <Button v-if="taskId !== null" size="sm" class="mt-4" :loading="loading" @click="refresh()">
+        Try again
+      </Button>
     </div>
     <TaskForm
       v-else-if="task"
