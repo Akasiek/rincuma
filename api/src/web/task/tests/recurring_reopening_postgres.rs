@@ -1,5 +1,7 @@
 #![allow(clippy::panic_in_result_fn)]
 
+use crate::web::task::recurrence::RecurrenceChange;
+
 use std::{path::PathBuf, time::Duration};
 
 use axum::{
@@ -104,6 +106,7 @@ async fn undo_wins_over_an_edit(state: &AppState, owner_id: i64) -> TestResult {
     )
     .await?;
     let request = SaveTaskRequest {
+        recurrence: RecurrenceChange::Keep,
         name: "Late edit".to_owned(),
         description: successor.description,
         due_at: successor.due_at,

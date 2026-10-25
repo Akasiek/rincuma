@@ -1,5 +1,7 @@
 #![allow(clippy::panic_in_result_fn)]
 
+use crate::web::task::recurrence::RecurrenceChange;
+
 use axum::{
     Json,
     extract::{Path, State},
@@ -40,6 +42,7 @@ async fn pair(
 
 fn request(task: &Task, tag_ids: Vec<i64>) -> SaveTaskRequest {
     SaveTaskRequest {
+        recurrence: RecurrenceChange::Keep,
         name: task.name.clone(),
         description: task.description.clone(),
         due_at: task.due_at,

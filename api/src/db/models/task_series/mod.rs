@@ -1,8 +1,6 @@
 mod model;
 
-pub(crate) use model::TaskSeries;
-#[cfg(test)]
-pub(crate) use model::{SeriesEnd, SeriesFrequency};
+pub(crate) use model::{SeriesEnd, SeriesFrequency, TaskSeries};
 
 #[cfg(test)]
 mod tests;

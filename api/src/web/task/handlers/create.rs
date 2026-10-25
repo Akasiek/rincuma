@@ -9,6 +9,7 @@ use crate::{
         auth::CurrentUser,
         task::{
             TaskError,
+            recurrence::apply_recurrence,
             relations::{validate_active_project, validate_owned_tag},
             request::SaveTaskRequest,
             response::TaskResponse,
@@ -51,7 +52,7 @@ pub(in crate::web::task) async fn create(
         validate_owned_tag(&mut transaction, *tag_id, user.id).await?;
     }
 
-    let task = toasty::create!(Task {
+    let mut task = toasty::create!(Task {
         name: request.name,
         description: request.description,
         due_at: request.due_at,
@@ -74,9 +75,11 @@ pub(in crate::web::task) async fn create(
         .await?;
     }
 
+    apply_recurrence(&mut transaction, &mut task, request.recurrence, now).await?;
+    let response = TaskResponse::load(&mut transaction, task, tag_ids).await?;
     transaction.commit().await?;
 
-    Ok((StatusCode::CREATED, Json(TaskResponse::new(task, tag_ids))))
+    Ok((StatusCode::CREATED, Json(response)))
 }
 
 #[cfg(test)]

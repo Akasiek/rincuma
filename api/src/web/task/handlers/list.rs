@@ -14,7 +14,7 @@ use crate::{
     web::{
         auth::CurrentUser,
         list::{Page, PageResponse, SortOrder},
-        task::{TaskError, response::TaskResponse},
+        task::{TaskError, recurrence::attach_recurrence, response::TaskResponse},
     },
 };
 
@@ -91,13 +91,15 @@ pub(in crate::web::task) async fn list(
     .await?;
 
     let mut tag_ids_by_task = fetch_tag_ids_for_tasks(&mut db, &tasks).await?;
-    let items = tasks
+    let mut items: Vec<_> = tasks
         .into_iter()
         .map(|task| {
             let tag_ids = tag_ids_by_task.remove(&task.id).unwrap_or_default();
             TaskResponse::new(task, tag_ids)
         })
         .collect();
+
+    attach_recurrence(&mut db, &mut items).await?;
 
     Ok(Json(PageResponse::new(items, total, &page)))
 }

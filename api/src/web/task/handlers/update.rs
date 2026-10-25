@@ -15,6 +15,7 @@ use crate::{
         task::{
             TaskError,
             locking::lock_owned_task,
+            recurrence::apply_recurrence,
             relations::{validate_active_project, validate_owned_tag},
             request::SaveTaskRequest,
             response::TaskResponse,
@@ -57,9 +58,10 @@ pub(in crate::web::task) async fn update(
     .await?;
 
     sync_task_with_tags(&mut transaction, task.id, &request.tag_ids).await?;
-
+    apply_recurrence(&mut transaction, &mut task, request.recurrence, now).await?;
+    let response = TaskResponse::load(&mut transaction, task, request.tag_ids).await?;
     transaction.commit().await?;
-    Ok(Json(TaskResponse::new(task, request.tag_ids)))
+    Ok(Json(response))
 }
 
 async fn recurrence_modified_at(

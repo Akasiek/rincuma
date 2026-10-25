@@ -11,7 +11,5 @@ pub(crate) use project::Project;
 pub(crate) use session::Session;
 pub(crate) use tag::{Tag, TaskTag};
 pub(crate) use task::{Task, TaskPriority};
-pub(crate) use task_series::TaskSeries;
-#[cfg(test)]
-pub(crate) use task_series::{SeriesEnd, SeriesFrequency};
+pub(crate) use task_series::{SeriesEnd, SeriesFrequency, TaskSeries};
 pub(crate) use user::User;

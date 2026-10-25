@@ -1,5 +1,7 @@
 #![allow(clippy::panic_in_result_fn)]
 
+use crate::web::task::recurrence::RecurrenceChange;
+
 use axum::{
     Json,
     extract::{Path, State},
@@ -326,6 +328,7 @@ async fn create_and_update_cannot_attach_children_to_a_recurring_parent() -> Tes
     .exec(&mut db)
     .await?;
     let request = || SaveTaskRequest {
+        recurrence: RecurrenceChange::Keep,
         name: "Child".to_owned(),
         description: None,
         due_at: None,

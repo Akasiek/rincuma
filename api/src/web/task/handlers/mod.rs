@@ -5,6 +5,9 @@ mod get;
 mod list;
 mod update;
 
+#[cfg(test)]
+pub(super) use list::ListTasksQuery;
+
 pub(super) use {
     complete::{complete, reopen},
     create::create,

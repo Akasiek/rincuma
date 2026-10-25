@@ -1,7 +1,24 @@
 use crate::{
-    db::{Project, Tag},
+    db::{Project, Tag, Task},
     web::task::TaskError,
 };
+
+pub(super) async fn validate_recurrence_leaf(
+    executor: &mut dyn toasty::Executor,
+    task_id: i64,
+) -> Result<(), TaskError> {
+    let child = Task::filter(Task::fields().parent_id().eq(Some(task_id)))
+        .first()
+        .exec(executor)
+        .await?;
+    if child.is_some() {
+        return Err(TaskError::conflict(
+            "A recurring task cannot have subtasks.",
+        ));
+    }
+
+    Ok(())
+}
 
 pub(super) async fn validate_active_project(
     executor: &mut dyn toasty::Executor,

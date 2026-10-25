@@ -55,8 +55,9 @@ async fn set_completion(
         reopen_locked(&mut transaction, &mut task, Timestamp::now()).await?;
     }
 
+    let response = TaskResponse::load(&mut transaction, task, tag_ids).await?;
     transaction.commit().await?;
-    Ok(Json(TaskResponse::new(task, tag_ids)))
+    Ok(Json(response))
 }
 
 #[cfg(test)]

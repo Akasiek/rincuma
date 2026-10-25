@@ -4,6 +4,7 @@ use garde::Validate;
 use jiff::Timestamp;
 use serde::Deserialize;
 
+use super::recurrence::RecurrenceChange;
 use crate::db::TaskPriority;
 
 #[derive(Deserialize, Validate)]
@@ -19,6 +20,9 @@ pub(super) struct SaveTaskRequest {
     #[serde(default)]
     #[garde(custom(validate_tag_ids))]
     pub(super) tag_ids: Vec<i64>,
+    /// Missing preserves the rule; null disables it; an object replaces it.
+    #[serde(default)]
+    pub(super) recurrence: RecurrenceChange,
 }
 
 fn validate_tag_ids(tag_ids: &[i64], _: &()) -> garde::Result {

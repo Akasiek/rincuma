@@ -2,6 +2,7 @@ mod completion;
 mod deletion;
 mod handlers;
 mod locking;
+mod recurrence;
 mod relations;
 mod reopening;
 mod request;

@@ -1,3 +1,5 @@
+use crate::web::task::recurrence::RecurrenceChange;
+
 use axum::{Json, extract::State, http::StatusCode};
 use jiff::Timestamp;
 
@@ -9,6 +11,7 @@ use crate::{
 
 fn request(name: &str) -> SaveTaskRequest {
     SaveTaskRequest {
+        recurrence: RecurrenceChange::Keep,
         name: name.to_owned(),
         description: None,
         due_at: None,
@@ -86,6 +89,7 @@ async fn creates_task_with_owned_relations() -> Result<(), Box<dyn std::error::E
     .await?;
     let due_at = now;
     let request = SaveTaskRequest {
+        recurrence: RecurrenceChange::Keep,
         name: "  Child task  ".to_owned(),
         description: Some("Description".to_owned()),
         due_at: Some(due_at),
@@ -131,10 +135,12 @@ async fn rejects_invalid_task_input() -> Result<(), Box<dyn std::error::Error>> 
         request("  "),
         request(&"x".repeat(256)),
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             tag_ids: vec![1, 1],
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             tag_ids: vec![0],
             ..request("Task")
         },
@@ -196,18 +202,22 @@ async fn rejects_unowned_and_archived_relations() -> Result<(), Box<dyn std::err
 
     for request in [
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             project_id: Some(other_project.id),
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             project_id: Some(archived_project.id),
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             parent_id: Some(other_parent.id),
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             tag_ids: vec![other_tag.id],
             ..request("Task")
         },
@@ -246,6 +256,7 @@ async fn rejects_parent_from_different_project() -> Result<(), Box<dyn std::erro
     .exec(&mut db)
     .await?;
     let request = SaveTaskRequest {
+        recurrence: RecurrenceChange::Keep,
         project_id: Some(project.id),
         parent_id: Some(parent.id),
         ..request("Task")

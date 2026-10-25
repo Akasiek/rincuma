@@ -1,0 +1,73 @@
+### Create a monthly task with no recurrence end
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Monthly review",
+  "due_at": "2030-01-31T08:00:00Z",
+  "recurrence": {
+    "frequency": "monthly",
+    "interval": 1,
+    "time_zone": "Europe/Warsaw",
+    "end": { "mode": "never" }
+  }
+}
+
+### Replace the active occurrence's rule; retain the count of created occurrences
+# The current due date becomes the new calendar anchor when the rule changes.
+# Send configuration fields only; anchor and occurrence_count in responses are read-only.
+# PUT is a full task save: carry forward description, priority, project_id,
+# parent_id and tag_ids when preserving their existing values.
+PUT {{baseUrl}}/tasks/1
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Monthly review",
+  "due_at": "2030-02-28T08:00:00Z",
+  "recurrence": {
+    "frequency": "weekly",
+    "interval": 2,
+    "time_zone": "Europe/Warsaw",
+    "end": { "mode": "after", "count": 12 }
+  }
+}
+
+### Use an inclusive end date in the series time zone
+PUT {{baseUrl}}/tasks/1
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Monthly review",
+  "due_at": "2030-02-28T08:00:00Z",
+  "recurrence": {
+    "frequency": "monthly",
+    "interval": 1,
+    "time_zone": "Europe/Warsaw",
+    "end": { "mode": "through", "date": "2030-12-31" }
+  }
+}
+
+### Reschedule only this occurrence; omit recurrence to preserve the series rhythm
+PUT {{baseUrl}}/tasks/1
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Monthly review",
+  "due_at": "2030-03-05T08:00:00Z"
+}
+
+### Disable recurrence; the current task becomes ordinary and history is retained
+# Re-enabling with a configuration object starts a new series with count 1.
+PUT {{baseUrl}}/tasks/1
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Monthly review",
+  "due_at": null,
+  "recurrence": null
+}

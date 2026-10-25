@@ -13,7 +13,8 @@ use jiff::{
 };
 use toasty::{Deferred, Embed, Model};
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Embed)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Embed, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub(crate) enum SeriesFrequency {
     Daily,
     Weekly,
@@ -21,7 +22,8 @@ pub(crate) enum SeriesFrequency {
 }
 
 /// Stores one end mode without allowing a simultaneous date and count limit.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Embed)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Embed, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "mode", rename_all = "snake_case", deny_unknown_fields)]
 pub(crate) enum SeriesEnd {
     Never,
     Through { date: Date },

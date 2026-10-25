@@ -1,3 +1,5 @@
+use crate::web::task::recurrence::RecurrenceChange;
+
 use axum::{
     Json,
     body::Body,
@@ -19,6 +21,7 @@ use crate::{
 
 fn request(name: &str) -> SaveTaskRequest {
     SaveTaskRequest {
+        recurrence: RecurrenceChange::Keep,
         name: name.to_owned(),
         description: None,
         due_at: None,
@@ -100,6 +103,7 @@ async fn updates_fields_relations_and_replaces_tags() -> Result<(), Box<dyn std:
     link(&mut db, unrelated.id, old_tag.id).await?;
     let due_at = Timestamp::now();
     let request = SaveTaskRequest {
+        recurrence: RecurrenceChange::Keep,
         name: "  Updated task  ".to_owned(),
         description: Some("Updated description".to_owned()),
         due_at: Some(due_at),
@@ -203,14 +207,17 @@ async fn rejects_invalid_input_without_changing_task() -> Result<(), Box<dyn std
         request("  "),
         request(&"x".repeat(256)),
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             tag_ids: vec![1, 1],
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             tag_ids: vec![0],
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             tag_ids: vec![-1],
             ..request("Task")
         },
@@ -287,30 +294,37 @@ async fn rejects_unavailable_relations_without_changing_task_or_tags()
     let other_tag = tag(&mut db, other.id).await?;
     for request in [
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             project_id: Some(other_project.id),
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             project_id: Some(archived.id),
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             project_id: Some(archived.id + 1),
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             parent_id: Some(other_parent.id),
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             parent_id: Some(other_parent.id + 1),
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             tag_ids: vec![own_tag.id, other_tag.id],
             ..request("Task")
         },
         SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             tag_ids: vec![own_tag.id, other_tag.id + 1],
             ..request("Task")
         },
@@ -351,6 +365,7 @@ async fn rejects_self_parent_and_descendant_cycles() -> Result<(), Box<dyn std::
     for parent_id in [original.id, child.id, grandchild.id] {
         let user = User::get_by_id(&mut db, &user.id).await?;
         let request = SaveTaskRequest {
+            recurrence: RecurrenceChange::Keep,
             parent_id: Some(parent_id),
             ..request("Task")
         };
@@ -381,6 +396,7 @@ async fn rejects_project_mismatch_with_parent_and_children()
         (
             original.id,
             SaveTaskRequest {
+                recurrence: RecurrenceChange::Keep,
                 parent_id: Some(parent.id),
                 ..request("Task")
             },
@@ -417,6 +433,7 @@ async fn edits_task_in_unchanged_archived_project() -> Result<(), Box<dyn std::e
     let project = project(&mut db, user.id, true).await?;
     let original = task(&mut db, user.id, Some(project.id), None).await?;
     let request = SaveTaskRequest {
+        recurrence: RecurrenceChange::Keep,
         project_id: Some(project.id),
         ..request("Updated task")
     };

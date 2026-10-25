@@ -1,6 +1,7 @@
 use jiff::Timestamp;
 use serde::Serialize;
 
+use super::recurrence::{RecurrenceResponse, attach_recurrence};
 use crate::db::{Task, TaskPriority};
 
 #[derive(Serialize)]
@@ -15,6 +16,9 @@ pub(super) struct TaskResponse {
     pub(super) project_id: Option<i64>,
     pub(super) parent_id: Option<i64>,
     pub(super) tag_ids: Vec<i64>,
+    pub(super) series_id: Option<i64>,
+    pub(super) scheduled_at: Option<Timestamp>,
+    pub(super) recurrence: Option<RecurrenceResponse>,
     pub(super) created_at: Timestamp,
     pub(super) updated_at: Timestamp,
 }
@@ -32,8 +36,21 @@ impl TaskResponse {
             project_id: task.project_id,
             parent_id: task.parent_id,
             tag_ids,
+            series_id: task.series_id,
+            scheduled_at: task.scheduled_at,
+            recurrence: None,
             created_at: task.created_at,
             updated_at: task.updated_at,
         }
+    }
+
+    pub(super) async fn load(
+        executor: &mut dyn toasty::Executor,
+        task: Task,
+        tag_ids: Vec<i64>,
+    ) -> toasty::Result<Self> {
+        let mut response = Self::new(task, tag_ids);
+        attach_recurrence(executor, std::slice::from_mut(&mut response)).await?;
+        Ok(response)
     }
 }

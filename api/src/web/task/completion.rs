@@ -3,7 +3,10 @@ use jiff::Timestamp;
 use crate::{
     db::{Project, Task, TaskSeries, TaskTag},
     recurrence::Schedule,
-    web::task::{TaskError, relations::validate_owned_tag},
+    web::task::{
+        TaskError,
+        relations::{validate_owned_tag, validate_recurrence_leaf},
+    },
 };
 
 /// Completes an already locked task and creates its successor in the same transaction.
@@ -50,7 +53,7 @@ async fn advance_series(
     }
 
     let scheduled_at = task.scheduled_at.ok_or_else(TaskError::bad_request)?;
-    validate_leaf(executor, task.id).await?;
+    validate_recurrence_leaf(executor, task.id).await?;
 
     let schedule = Schedule::try_from(&series).map_err(|_| TaskError::bad_request())?;
     let next = schedule
@@ -75,21 +78,6 @@ async fn advance_series(
     })
     .exec(executor)
     .await?;
-
-    Ok(())
-}
-
-async fn validate_leaf(executor: &mut dyn toasty::Executor, task_id: i64) -> Result<(), TaskError> {
-    let child = Task::filter(Task::fields().parent_id().eq(Some(task_id)))
-        .first()
-        .exec(executor)
-        .await?;
-
-    if child.is_some() {
-        return Err(TaskError::conflict(
-            "A recurring task cannot have subtasks.",
-        ));
-    }
 
     Ok(())
 }

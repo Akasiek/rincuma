@@ -29,7 +29,7 @@ pub(in crate::web::task) async fn get_task(
         .await?;
     let tag_ids = task_tags.into_iter().map(|link| link.tag_id).collect();
 
-    Ok(Json(TaskResponse::new(task, tag_ids)))
+    Ok(Json(TaskResponse::load(&mut db, task, tag_ids).await?))
 }
 
 #[cfg(test)]
