@@ -31,31 +31,6 @@ pub(super) async fn complete_locked(
     Ok(())
 }
 
-pub(super) async fn reopen_locked(
-    executor: &mut dyn toasty::Executor,
-    task: &mut Task,
-    now: Timestamp,
-) -> Result<(), TaskError> {
-    if task.completed_at.is_none() {
-        return Ok(());
-    }
-
-    if task.series_id.is_some() {
-        return Err(TaskError::conflict(
-            "This recurring task cannot be reopened.",
-        ));
-    }
-
-    toasty::update!(task {
-        completed_at: None,
-        updated_at: now,
-    })
-    .exec(executor)
-    .await?;
-
-    Ok(())
-}
-
 async fn advance_series(
     executor: &mut dyn toasty::Executor,
     task: &Task,
@@ -161,6 +136,7 @@ async fn create_successor(
         project_id: task.project_id,
         parent_id: task.parent_id,
         series_id: task.series_id,
+        predecessor_task_id: Some(task.id),
         due_at: Some(scheduled_at),
         scheduled_at: Some(scheduled_at),
         created_at: now,

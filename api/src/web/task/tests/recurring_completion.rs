@@ -11,12 +11,14 @@ use jiff::{Timestamp, civil::date};
 use super::complete_locked;
 use crate::{
     app_state::AppState,
-    db::{Project, SeriesEnd, SeriesFrequency, Tag, Task, TaskPriority, TaskSeries, TaskTag, User},
+    db::{Project, SeriesEnd, Tag, Task, TaskPriority, TaskSeries, TaskTag, User},
     web::{
         auth::CurrentUser,
         task::{
             TaskError,
             handlers::{complete, create, reopen, update},
+            locking::lock_owned_task,
+            recurring_support::{finish_at, occurrences, recurring},
             request::SaveTaskRequest,
         },
         test_support::state_with_user,
@@ -24,68 +26,6 @@ use crate::{
 };
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
-
-async fn recurring(
-    executor: &mut dyn toasty::Executor,
-    owner_id: i64,
-    end: SeriesEnd,
-) -> Result<(Task, TaskSeries), Box<dyn std::error::Error>> {
-    let now: Timestamp = "2028-01-31T08:00:00Z".parse()?;
-    let mut series = toasty::create!(TaskSeries {
-        owner_id,
-        frequency: SeriesFrequency::Monthly,
-        interval: 1,
-        time_zone: "Europe/Warsaw".to_owned(),
-        anchor: date(2028, 1, 31).at(9, 0, 0, 0),
-        end,
-        created_at: now,
-        updated_at: now,
-    })
-    .exec(executor)
-    .await?;
-    let task = toasty::create!(Task {
-        owner_id,
-        name: "Original task".to_owned(),
-        description: Some("Original description".to_owned()),
-        priority: TaskPriority::High,
-        due_at: Some(now),
-        series_id: Some(series.id),
-        scheduled_at: Some(now),
-        created_at: now,
-        updated_at: now,
-    })
-    .exec(executor)
-    .await?;
-    toasty::update!(series {
-        latest_task_id: Some(task.id)
-    })
-    .exec(executor)
-    .await?;
-    Ok((task, series))
-}
-
-async fn finish_at(state: &AppState, owner_id: i64, id: i64, now: &str) -> Result<Task, TaskError> {
-    let mut db = state.db().clone();
-    let mut transaction = db.transaction().await?;
-    let mut task = Task::lock_owned(&mut transaction, id, owner_id)
-        .await?
-        .ok_or_else(TaskError::related_resource_not_found)?;
-    let tags = TaskTag::filter_by_task_id(id)
-        .exec(&mut transaction)
-        .await?;
-    let tag_ids: Vec<i64> = tags.into_iter().map(|tag| tag.tag_id).collect();
-    let now = now.parse().map_err(|_| TaskError::bad_request())?;
-    complete_locked(&mut transaction, &mut task, &tag_ids, now).await?;
-    transaction.commit().await?;
-    Ok(task)
-}
-
-async fn occurrences(executor: &mut dyn toasty::Executor, id: i64) -> toasty::Result<Vec<Task>> {
-    Task::filter(Task::fields().series_id().eq(Some(id)))
-        .order_by(Task::fields().id().asc())
-        .exec(executor)
-        .await
-}
 
 #[tokio::test]
 async fn copies_current_fields_relations_and_tags_into_a_fresh_occurrence() -> TestResult {
@@ -481,15 +421,10 @@ async fn completion_route_is_idempotent_and_reopening_cannot_leave_a_successor_b
     assert_eq!(first.completed_at, repeated.completed_at);
     assert_eq!(occurrences(&mut db, series.id).await?.len(), 2);
     let user = User::get_by_id(&mut db, task.owner_id).await?;
-    let error = reopen(State(state.clone()), CurrentUser(user), Path(task.id))
-        .await
-        .err()
-        .ok_or("expected reopening rejection")?;
-    assert_eq!(error.into_response().status(), StatusCode::CONFLICT);
-    assert_eq!(
-        Task::get_by_id(&mut db, task.id).await?.completed_at,
-        first.completed_at
-    );
+    let Json(reopened) = reopen(State(state.clone()), CurrentUser(user), Path(task.id)).await?;
+    assert_eq!(reopened.completed_at, None);
+    assert_eq!(Task::get_by_id(&mut db, task.id).await?.completed_at, None);
+    assert_eq!(occurrences(&mut db, series.id).await?.len(), 1);
     Ok(())
 }
 
@@ -519,9 +454,7 @@ async fn postgres_competing_completions_create_exactly_one_successor() -> TestRe
 
     let mut first_db = db.clone();
     let mut transaction = first_db.transaction().await?;
-    let mut locked = Task::lock_owned(&mut transaction, task.id, user.id)
-        .await?
-        .ok_or("missing task")?;
+    let mut locked = lock_owned_task(&mut transaction, task.id, user.id).await?;
     let second_state = state.clone();
     let task_id = task.id;
     let (started, waiting) = tokio::sync::oneshot::channel();

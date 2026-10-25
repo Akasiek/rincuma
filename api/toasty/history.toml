@@ -24,3 +24,8 @@ snapshot_name = "0003_snapshot.toml"
 id = 1655614043887806483
 name = "0004_task_series.sql"
 snapshot_name = "0004_snapshot.toml"
+
+[[migrations]]
+id = 2881460501963297293
+name = "0005_occurrence_predecessor.sql"
+snapshot_name = "0005_snapshot.toml"

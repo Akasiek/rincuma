@@ -6,13 +6,12 @@ use jiff::Timestamp;
 
 use crate::{
     app_state::AppState,
-    db::{Task, TaskTag},
+    db::TaskTag,
     web::{
         auth::CurrentUser,
         task::{
-            TaskError,
-            completion::{complete_locked, reopen_locked},
-            response::TaskResponse,
+            TaskError, completion::complete_locked, locking::lock_owned_task,
+            reopening::reopen_locked, response::TaskResponse,
         },
     },
 };
@@ -41,9 +40,7 @@ async fn set_completion(
 ) -> Result<Json<TaskResponse>, TaskError> {
     let mut db = state.db().clone();
     let mut transaction = db.transaction().await?;
-    let mut task = Task::lock_owned(&mut transaction, id, owner_id)
-        .await?
-        .ok_or_else(TaskError::related_resource_not_found)?;
+    let mut task = lock_owned_task(&mut transaction, id, owner_id).await?;
 
     let tag_ids: Vec<i64> = TaskTag::filter_by_task_id(task.id)
         .exec(&mut transaction)

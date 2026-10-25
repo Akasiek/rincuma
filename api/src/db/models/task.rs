@@ -55,6 +55,9 @@ pub(crate) struct Task {
     pub(crate) series: Deferred<Option<TaskSeries>>,
     /// Original scheduled instant, independent of occurrence-only due date edits.
     pub(crate) scheduled_at: Option<Timestamp>,
+    /// Direct predecessor identity; retained even if that historical task is deleted.
+    /// Not an owning relation, so deleting history cannot detach a successor.
+    pub(crate) predecessor_task_id: Option<i64>,
     /// Presence records a meaningful edit, independently of audit timestamp equality.
     /// An edited successor blocks undo of its predecessor.
     pub(crate) recurrence_modified_at: Option<Timestamp>,

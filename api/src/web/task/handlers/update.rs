@@ -14,6 +14,7 @@ use crate::{
         auth::CurrentUser,
         task::{
             TaskError,
+            locking::lock_owned_task,
             relations::{validate_active_project, validate_owned_tag},
             request::SaveTaskRequest,
             response::TaskResponse,
@@ -32,9 +33,7 @@ pub(in crate::web::task) async fn update(
 
     let mut db = state.db().clone();
     let mut transaction = db.transaction().await?;
-    let mut task = Task::get_owned(&mut transaction, id, user.id)
-        .await?
-        .ok_or_else(TaskError::related_resource_not_found)?;
+    let mut task = lock_owned_task(&mut transaction, id, user.id).await?;
 
     validate_project_change(&mut transaction, &task, request.project_id).await?;
     validate_parent(&mut transaction, &task, &request).await?;
@@ -42,6 +41,8 @@ pub(in crate::web::task) async fn update(
         validate_owned_tag(&mut transaction, *tag_id, user.id).await?;
     }
 
+    let now = Timestamp::now();
+    let modified_at = recurrence_modified_at(&mut transaction, &task, &request, now).await?;
     toasty::update!(task {
         name: request.name,
         description: request.description,
@@ -49,7 +50,8 @@ pub(in crate::web::task) async fn update(
         priority: request.priority.unwrap_or(TaskPriority::None),
         project_id: request.project_id,
         parent_id: request.parent_id,
-        updated_at: Timestamp::now(),
+        recurrence_modified_at: modified_at,
+        updated_at: now,
     })
     .exec(&mut transaction)
     .await?;
@@ -58,6 +60,29 @@ pub(in crate::web::task) async fn update(
 
     transaction.commit().await?;
     Ok(Json(TaskResponse::new(task, request.tag_ids)))
+}
+
+async fn recurrence_modified_at(
+    executor: &mut dyn toasty::Executor,
+    task: &Task,
+    request: &SaveTaskRequest,
+    now: Timestamp,
+) -> Result<Option<Timestamp>, TaskError> {
+    if task.series_id.is_none() || task.recurrence_modified_at.is_some() {
+        return Ok(task.recurrence_modified_at);
+    }
+
+    let stored = TaskTag::filter_by_task_id(task.id).exec(executor).await?;
+    let stored_tags: HashSet<_> = stored.into_iter().map(|tag| tag.tag_id).collect();
+    let requested_tags: HashSet<_> = request.tag_ids.iter().copied().collect();
+    let changed = task.name != request.name
+        || task.description != request.description
+        || task.due_at != request.due_at
+        || task.priority != request.priority.unwrap_or(TaskPriority::None)
+        || task.project_id != request.project_id
+        || task.parent_id != request.parent_id
+        || stored_tags != requested_tags;
+    Ok(changed.then_some(now))
 }
 
 /// Validates a project reassignment without breaking the task hierarchy.
