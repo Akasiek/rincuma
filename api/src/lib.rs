@@ -6,6 +6,7 @@ mod auth;
 mod config;
 mod db;
 mod notifications;
+pub mod recurrence;
 mod tracer;
 mod web;
 
