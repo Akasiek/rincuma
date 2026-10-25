@@ -4,7 +4,7 @@ use jiff::Timestamp;
 
 use crate::{
     db::{Task, TaskSeries},
-    web::task::TaskError,
+    web::task::{TaskError, locking::lock_subtree},
 };
 
 /// Locks every affected series before its tasks, then rechecks the subtree.
@@ -68,34 +68,6 @@ async fn collect_subtree(
     Ok(tasks)
 }
 
-async fn lock_subtree(
-    executor: &mut dyn toasty::Executor,
-    tasks: &[Task],
-    owner_id: i64,
-) -> Result<(), TaskError> {
-    let series_ids: BTreeSet<_> = tasks.iter().filter_map(|task| task.series_id).collect();
-    for id in series_ids {
-        TaskSeries::lock_owned(executor, id, owner_id)
-            .await?
-            .ok_or_else(TaskError::related_resource_not_found)?;
-    }
-
-    let mut ordered: Vec<_> = tasks.iter().collect();
-    ordered.sort_by_key(|task| task.id);
-
-    for selected in ordered {
-        let task = Task::lock_owned(executor, selected.id, owner_id)
-            .await?
-            .ok_or_else(TaskError::related_resource_not_found)?;
-        if task.series_id != selected.series_id {
-            return Err(TaskError::conflict(
-                "This task's recurrence changed. Please try again.",
-            ));
-        }
-    }
-
-    Ok(())
-}
 
 async fn stop_deleted_series(
     executor: &mut dyn toasty::Executor,
