@@ -3,6 +3,7 @@ mod project;
 mod session;
 mod tag;
 mod task;
+mod task_series;
 mod user;
 
 pub(crate) use notification_settings::{NotificationProviderKind, NotificationSettings};

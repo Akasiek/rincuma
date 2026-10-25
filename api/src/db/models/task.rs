@@ -1,6 +1,7 @@
 use super::{
     project::Project,
     tag::{Tag, TaskTag},
+    task_series::TaskSeries,
     user::User,
 };
 use jiff::Timestamp;
@@ -47,6 +48,16 @@ pub(crate) struct Task {
     pub(crate) project_id: Option<i64>,
     #[belongs_to(key = project_id, references = id)]
     pub(crate) project: Deferred<Option<Project>>,
+
+    #[index]
+    pub(crate) series_id: Option<i64>,
+    #[belongs_to(key = series_id, references = id)]
+    pub(crate) series: Deferred<Option<TaskSeries>>,
+    /// Original scheduled instant, independent of occurrence-only due date edits.
+    pub(crate) scheduled_at: Option<Timestamp>,
+    /// Presence records a meaningful edit, independently of audit timestamp equality.
+    /// An edited successor blocks undo of its predecessor.
+    pub(crate) recurrence_modified_at: Option<Timestamp>,
 
     #[has_many]
     pub(crate) task_tags: Deferred<Vec<TaskTag>>,
