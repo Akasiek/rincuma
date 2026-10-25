@@ -16,6 +16,7 @@ useHead({
     </NuxtPage>
     <template v-if="isPageReady">
       <TaskCreatorLauncher v-if="userStore.isLoggedIn" />
+      <TaskEditorHost v-if="userStore.isLoggedIn" />
     </template>
     <UnsavedChangesModal v-model:open="confirmationOpen" :saving="saving" @decision="finish" />
   </div>

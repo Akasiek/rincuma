@@ -6,8 +6,12 @@ const {
   formId,
   errors = [],
   isSubmitting = false,
+  title,
+  saveDisabled = false,
 } = defineProps<{
+  title: string;
   formId: string;
+  saveDisabled?: boolean;
   errorSummaryId: string;
   errors?: { fieldId?: string; message: string }[];
   isSubmitting?: boolean;
@@ -18,17 +22,20 @@ function focusField(fieldId: string) {
 }
 
 function focusName(event: Event) {
-  event.preventDefault();
-  focusField(`${formId}-name`);
+  const nameField = document.getElementById(`${formId}-name`);
+  if (nameField) {
+    event.preventDefault();
+    nameField.focus();
+  }
 }
 </script>
 
 <template>
   <BaseModal
     v-model:open="open"
-    title="New Task"
+    :title="title"
     @open-auto-focus="focusName"
-    class="task-creator-modal isolate flex max-h-[calc(100dvh-6rem)] w-[calc(100%-2rem)] max-w-lg flex-col overflow-visible font-serif text-light-text dark:text-dark-text"
+    class="task-form-modal isolate flex max-h-[calc(100dvh-6rem)] w-[calc(100%-2rem)] max-w-lg flex-col overflow-visible font-serif text-light-text dark:text-dark-text"
   >
     <template v-if="$slots.trigger" #trigger>
       <slot name="trigger" />
@@ -57,7 +64,7 @@ function focusName(event: Event) {
 
     <button
       type="button"
-      aria-label="Close task creator"
+      :aria-label="`Close ${title.toLowerCase()}`"
       class="absolute -top-4 -right-4 z-20 flex size-10 -rotate-2 cursor-pointer items-center justify-center rounded-md border-2 border-transparent bg-light-love shadow-[0_0_1em_#00000044] brightness-90 transition hover:scale-105 hover:rotate-0 hover:brightness-100 focus-visible:scale-105 focus-visible:rotate-0 focus-visible:brightness-100 dark:bg-dark-love"
       @click="() => (open = false)"
     >
@@ -67,7 +74,7 @@ function focusName(event: Event) {
     <button
       type="submit"
       :form="formId"
-      :disabled="isSubmitting"
+      :disabled="isSubmitting || saveDisabled"
       :aria-busy="isSubmitting"
       aria-label="Save task"
       class="absolute -right-6 -bottom-4 z-20 flex size-12 rotate-1 cursor-pointer items-center justify-center rounded-md border-2 border-transparent bg-light-base shadow-[0_0_1em_#00000044] brightness-90 transition hover:scale-105 hover:rotate-0 hover:brightness-100 focus-visible:scale-105 focus-visible:rotate-0 focus-visible:brightness-100 disabled:cursor-wait disabled:opacity-60 dark:bg-dark-pine"
@@ -78,13 +85,13 @@ function focusName(event: Event) {
 </template>
 
 <style>
-.task-creator-modal[data-state="open"] {
-  animation: task-creator-in 220ms ease-out;
+.task-form-modal[data-state="open"] {
+  animation: task-form-in 220ms ease-out;
 }
-.task-creator-modal[data-state="closed"] {
-  animation: task-creator-out 140ms ease-in forwards;
+.task-form-modal[data-state="closed"] {
+  animation: task-form-out 140ms ease-in forwards;
 }
-@keyframes task-creator-in {
+@keyframes task-form-in {
   from {
     opacity: 0;
     transform: translateY(12px) scale(0.98);
@@ -94,7 +101,7 @@ function focusName(event: Event) {
     transform: translateY(0) scale(1);
   }
 }
-@keyframes task-creator-out {
+@keyframes task-form-out {
   from {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -105,7 +112,7 @@ function focusName(event: Event) {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .task-creator-modal {
+  .task-form-modal {
     animation: none !important;
   }
 }

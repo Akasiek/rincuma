@@ -3,6 +3,7 @@ import type { Task } from "#shared/types/task";
 import TaskCardDueDate from "./DueDate.vue";
 
 defineProps<{ task: Task; descriptionId: string }>();
+const route = useRoute();
 const descriptionOpen = defineModel<boolean>("descriptionOpen", { default: false });
 </script>
 
@@ -15,7 +16,17 @@ const descriptionOpen = defineModel<boolean>("descriptionOpen", { default: false
           task.completed_at,
       }"
     >
-      {{ task.name }}
+      <NuxtLink
+        :to="{
+          path: route.path,
+          query: { ...route.query, task: String(task.id) },
+          hash: route.hash,
+        }"
+        class="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+        :aria-label="`Edit task: ${task.name}`"
+      >
+        {{ task.name }}
+      </NuxtLink>
     </h3>
     <div
       v-if="task.due_at || task.description || task.parent_id !== null"

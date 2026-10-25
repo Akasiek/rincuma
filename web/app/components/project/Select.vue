@@ -4,6 +4,7 @@ import { storeToRefs } from "pinia";
 
 const props = defineProps<{
   id: string;
+  retainedProjectId?: number | null;
   compact?: boolean;
   disabled?: boolean;
   invalid?: boolean;
@@ -16,8 +17,11 @@ const { projects, loaded } = storeToRefs(useDictionariesStore());
 const options = computed(() => [
   { value: null, label: "No project" },
   ...projects.value
-    .filter((project) => !project.archived_at)
-    .map((project) => ({ value: project.id, label: project.name })),
+    .filter((project) => !project.archived_at || project.id === props.retainedProjectId)
+    .map((project) => ({
+      value: project.id,
+      label: project.archived_at ? `${project.name} (archived)` : project.name,
+    })),
 ]);
 
 const selectedProject = computed(() =>
@@ -53,7 +57,10 @@ function projectColor(value: SelectModelValue) {
 
 <template>
   <AppSelect
-    v-bind="props"
+    :id="id"
+    :compact="compact"
+    :invalid="invalid"
+    :describedby="describedby"
     :trigger-class="compact ? triggerClass : undefined"
     :trigger-style="triggerStyle"
     label="Project"

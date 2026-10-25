@@ -24,7 +24,6 @@ export function useTask() {
       (key) => (key === prefix || key.startsWith(`${prefix}:`)) && key !== exceptKey,
     );
 
-    clearNuxtData(keys);
     await refreshNuxtData(keys);
   }
 
@@ -59,14 +58,19 @@ export function useTask() {
     return listTasks();
   }
 
-  async function createTask(requestBody: SaveTaskRequest): Promise<Task> {
-    const task = await requestFetch<Task>("/api/tasks", {
+  function createTask(requestBody: SaveTaskRequest): Promise<Task> {
+    return requestFetch<Task>("/api/tasks", {
       method: "POST",
       body: requestBody,
     });
-    await refreshTaskLists();
+  }
 
-    return task;
+  function getTask(id: number): Promise<Task> {
+    return requestFetch<Task>(`/api/tasks/${id}`);
+  }
+
+  function updateTask(id: number, body: SaveTaskRequest): Promise<Task> {
+    return requestFetch<Task>(`/api/tasks/${id}`, { method: "PUT", body });
   }
 
   async function completeTask(id: number): Promise<Task> {
@@ -79,6 +83,8 @@ export function useTask() {
 
   return {
     createTask,
+    getTask,
+    updateTask,
     completeTask,
     reopenTask,
     listTasks,
