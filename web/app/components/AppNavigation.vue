@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const navItems = [
+const applicationItems = [
   {
     to: "/",
     icon: "carbon:task",
@@ -11,27 +11,30 @@ const navItems = [
     label: "Next 7 days",
   },
 ];
+
+const personalItems = [
+  {
+    to: "/settings",
+    icon: "carbon:settings",
+    label: "Settings",
+  },
+];
 </script>
 
 <template>
   <aside
-    class="sticky top-0 z-10 max-h-full w-full shrink-0 overflow-y-auto border-b border-light-highlight-med bg-light-surface p-2 md:h-full md:w-58 md:border-r md:border-b-0 md:p-5 dark:border-dark-highlight-med dark:bg-dark-surface"
+    class="sticky top-0 z-10 flex max-h-full w-full shrink-0 flex-col overflow-y-auto border-b border-light-highlight-med bg-light-surface p-2 md:h-full md:w-58 md:border-r md:border-b-0 md:px-4 md:py-5 lg:w-64 xl:w-72 dark:border-dark-highlight-med dark:bg-dark-surface"
   >
-    <h1 class="hidden text-3xl font-black md:block">Rincuma</h1>
-    <hr class="hidden w-12 border-t-2 md:block" />
-    <nav
-      aria-label="Task views"
-      class="flex gap-1 font-serif text-sm md:mt-8 md:block md:space-y-1"
+    <div class="hidden md:block">
+      <h1 class="text-3xl font-black">Rincuma</h1>
+      <hr class="w-12 border-t-2" />
+    </div>
+    <NavigationSection label="Task navigation" :items="applicationItems" class="md:mt-8" />
+    <div
+      class="mt-2 border-t border-light-highlight-med pt-2 md:mt-auto md:pt-4 dark:border-dark-highlight-med"
     >
-      <NuxtLink
-        v-for="{ to, label, icon } in navItems"
-        :to="to"
-        class="flex items-center gap-2.5 rounded-md px-3 py-2.5 hover:bg-light-highlight-med dark:hover:bg-dark-highlight-med"
-        exact-active-class="bg-light-highlight-med/50 dark:bg-dark-highlight-med/50"
-      >
-        <Icon :name="icon" class="size-4" aria-hidden="true" />
-        {{ label }}
-      </NuxtLink>
-    </nav>
+      <NavigationSection label="Personal navigation" :items="personalItems" />
+      <NavigationProfileMenu class="mt-1" />
+    </div>
   </aside>
 </template>
