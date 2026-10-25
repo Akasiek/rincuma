@@ -34,5 +34,7 @@ function close() {
 </script>
 
 <template>
-  <TaskEditor v-if="open" :key="String(route.query.task)" :task-id="taskId" @close="close" />
+  <Suspense :timeout="0">
+    <TaskEditor v-if="open" :key="String(route.query.task)" :task-id="taskId" @close="close" />
+  </Suspense>
 </template>
