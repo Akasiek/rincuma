@@ -63,4 +63,3 @@ pub(super) async fn lock_subtree(
 
     Ok(())
 }
-

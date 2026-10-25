@@ -68,7 +68,6 @@ async fn collect_subtree(
     Ok(tasks)
 }
 
-
 async fn stop_deleted_series(
     executor: &mut dyn toasty::Executor,
     tasks: &[Task],
