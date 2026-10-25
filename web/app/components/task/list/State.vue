@@ -1,14 +1,10 @@
 <script setup lang="ts">
-defineProps<{ loading: boolean; failed: boolean; empty: boolean }>();
+defineProps<{ failed: boolean; empty: boolean }>();
 const emit = defineEmits<{ retry: [] }>();
 </script>
 
 <template>
-  <p v-if="loading" role="status" class="py-8 text-sm text-light-subtle dark:text-dark-subtle">
-    Loading tasks...
-  </p>
-
-  <div v-else-if="failed" role="alert" class="space-y-3 py-8">
+  <div v-if="failed" role="alert" class="space-y-3 py-8">
     <p class="font-sans text-sm text-light-love dark:text-dark-love">
       Could not load tasks. Please try again.
     </p>

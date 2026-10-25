@@ -27,7 +27,6 @@ const groups = computed(() => groupTasks(tasks.value, now.value, timeZone.value)
 const activeCount = computed(() => tasks.value.filter((task) => !task.completed_at).length);
 const completedCount = computed(() => tasks.value.length - activeCount.value);
 const refreshing = computed(() => status.value === "pending");
-const loading = computed(() => refreshing.value && !hasLoadedTasks.value);
 
 async function updateTask(updatedTask: Task) {
   data.value = tasks.value
@@ -65,12 +64,7 @@ function toggleGroup(id: string) {
             :completed-count="completedCount"
             :loaded="hasLoadedTasks"
           />
-          <State
-            :loading="loading"
-            :failed="!!error"
-            :empty="tasks.length === 0"
-            @retry="refresh()"
-          >
+          <State :failed="!!error" :empty="hasLoadedTasks && tasks.length === 0" @retry="refresh()">
             <div class="space-y-8">
               <Section
                 v-for="group in groups"
