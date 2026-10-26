@@ -34,3 +34,8 @@ snapshot_name = "0005_snapshot.toml"
 id = 1064669391923366493
 name = "0006_advanced_recurrence_patterns.sql"
 snapshot_name = "0006_snapshot.toml"
+
+[[migrations]]
+id = 6618171341118704499
+name = "0007_soft_delete_tasks.sql"
+snapshot_name = "0007_snapshot.toml"

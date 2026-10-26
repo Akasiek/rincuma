@@ -1,10 +1,12 @@
 import type { Ref } from "vue";
 import type { Task } from "#shared/types/task";
+import type { TaskDeletion } from "#shared/types/taskDeletion";
 import { useToastManager } from "reka-ui";
 
 export function useTaskDeletion(task: Ref<Task>, onDeleted: () => void) {
   const { deleteTask, refreshTaskLists } = useTask();
   const toast = useToastManager();
+  const { showDeletedTask } = useTaskDeletionToast();
   const deleting = ref(false);
   const error = ref("");
 
@@ -16,9 +18,10 @@ export function useTaskDeletion(task: Ref<Task>, onDeleted: () => void) {
     deleting.value = true;
     error.value = "";
     try {
-      if (await deleteSelectedTask(selected)) {
+      const result = await deleteSelectedTask(selected);
+      if (result) {
         onDeleted();
-        const notificationId = showDeletionToast(selected);
+        const notificationId = showDeletedTask(selected, result.undo);
         await refreshAfterDeletion(notificationId);
       }
     } finally {
@@ -26,40 +29,37 @@ export function useTaskDeletion(task: Ref<Task>, onDeleted: () => void) {
     }
   }
 
-  async function deleteSelectedTask(selected: Task): Promise<boolean> {
+  async function deleteSelectedTask(selected: Task): Promise<{ undo?: TaskDeletion } | null> {
     try {
-      await deleteTask(selected.id);
-      return true;
+      return { undo: await deleteTask(selected.id) };
     } catch (cause) {
       const status = (cause as { response?: { status?: number } })?.response?.status;
       if (status === 404) {
-        return true;
+        return {};
       }
       error.value =
         status === 409
           ? "The task or its subtasks changed. Check them and try again."
           : "Could not delete this task. Please try again.";
-      return false;
-    }
-  }
 
-  function showDeletionToast(selected: Task) {
-    toast.close(`task-completed:${selected.owner_id}:${selected.id}`);
-    return toast.add({
-      title: "Task deleted",
-      description: selected.name,
-      status: "success",
-      duration: 5000,
-    });
+      return null;
+    }
   }
 
   async function refreshAfterDeletion(notificationId: ReturnType<typeof toast.add>) {
     try {
       await refreshTaskLists();
     } catch {
+      const notification = toast.toasts.value.find((item) => item.id === notificationId);
+      if (
+        notification?.title !== "Task deleted" &&
+        notification?.title !== "Task already deleted"
+      ) {
+        return;
+      }
+
       toast.update(notificationId, {
         description: "The task was deleted. Refresh the list to see the change.",
-        duration: 8000,
       });
     }
   }

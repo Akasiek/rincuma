@@ -8,6 +8,7 @@ mod relations;
 mod reopening;
 mod request;
 mod response;
+mod restoration;
 mod routes;
 
 pub(super) use routes::router;

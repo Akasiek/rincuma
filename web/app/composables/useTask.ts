@@ -1,3 +1,4 @@
+import type { TaskDeletion } from "#shared/types/taskDeletion";
 import type { TaskListQuery } from "#shared/types/taskFilters";
 
 export function useTask() {
@@ -73,8 +74,15 @@ export function useTask() {
     return requestFetch<Task>(`/api/tasks/${id}`, { method: "PUT", body });
   }
 
-  function deleteTask(id: number): Promise<void> {
-    return requestFetch<void>(`/api/tasks/${id}`, { method: "DELETE" });
+  function deleteTask(id: number): Promise<TaskDeletion> {
+    return requestFetch<TaskDeletion>(`/api/tasks/${id}`, { method: "DELETE" });
+  }
+
+  function restoreTaskDeletion(deletion: TaskDeletion): Promise<void> {
+    return requestFetch<void>(`/api/tasks/${deletion.task_id}/restore`, {
+      method: "POST",
+      body: { deleted_at: deletion.deleted_at },
+    });
   }
 
   async function completeTask(id: number): Promise<Task> {
@@ -90,6 +98,7 @@ export function useTask() {
     getTask,
     updateTask,
     deleteTask,
+    restoreTaskDeletion,
     completeTask,
     reopenTask,
     listTasks,

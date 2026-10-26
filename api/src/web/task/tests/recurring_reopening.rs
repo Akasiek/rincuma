@@ -78,7 +78,9 @@ async fn undo_deletes_only_the_untouched_successor_and_restores_its_count() -> T
     assert_eq!(reopened.scheduled_at, original.scheduled_at);
     assert_eq!(occurrences(&mut db, series.id).await?.len(), 1);
     assert!(
-        Task::get_owned(&mut db, successor.id, user.id)
+        Task::filter_by_id(successor.id)
+            .first()
+            .exec(&mut db)
             .await?
             .is_none()
     );
@@ -374,7 +376,7 @@ async fn deleting_the_active_occurrence_stops_the_series_and_preserves_history()
     let (state, user) = state_with_user().await?;
     let mut db = state.db().clone();
     let (original, successor, series) = pair(&state, user.id).await?;
-    delete(State(state.clone()), CurrentUser(user), Path(successor.id)).await?;
+    let _ = delete(State(state.clone()), CurrentUser(user), Path(successor.id)).await?;
     let series = TaskSeries::get_by_id(&mut db, series.id).await?;
     assert!(series.stopped_at.is_some());
     assert!(
@@ -392,7 +394,7 @@ async fn deleted_completed_history_cannot_make_an_unrelated_successor_undoable()
     let mut db = state.db().clone();
     let (first, second, series) = pair(&state, user.id).await?;
     finish_at(&state, user.id, second.id, "2028-02-29T08:05:00Z").await?;
-    delete(State(state.clone()), CurrentUser(user), Path(second.id)).await?;
+    let _ = delete(State(state.clone()), CurrentUser(user), Path(second.id)).await?;
     assert_blocked(&state, first.owner_id, first.id).await?;
     assert_eq!(occurrences(&mut db, series.id).await?.len(), 2);
     Ok(())

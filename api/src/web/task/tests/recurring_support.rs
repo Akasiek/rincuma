@@ -70,7 +70,8 @@ pub(in crate::web::task) async fn occurrences(
     executor: &mut dyn toasty::Executor,
     id: i64,
 ) -> toasty::Result<Vec<Task>> {
-    Task::filter(Task::fields().series_id().eq(Some(id)))
+    Task::not_deleted()
+        .filter(Task::fields().series_id().eq(Some(id)))
         .order_by(Task::fields().id().asc())
         .exec(executor)
         .await

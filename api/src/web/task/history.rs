@@ -10,7 +10,7 @@ pub(super) async fn latest_completed_ids(
 ) -> toasty::Result<Vec<i64>> {
     let rows = toasty::sql::query(
         "SELECT MAX(id) FROM tasks WHERE owner_id = $1 AND series_id IS NOT NULL \
-         AND completed_at IS NOT NULL GROUP BY series_id",
+         AND completed_at IS NOT NULL AND deleted_at IS NULL GROUP BY series_id",
     )
     .bind(owner_id)
     .column_types([Type::I64])

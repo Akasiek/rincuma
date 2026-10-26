@@ -146,7 +146,7 @@ fn filtered_tasks(
     latest_completed: Option<&[i64]>,
     now: Timestamp,
 ) -> DbQuery<List<Task>> {
-    let mut query = DbQuery::<List<Task>>::all().filter(Task::fields().owner_id().eq(owner_id));
+    let mut query = Task::not_deleted().filter(Task::fields().owner_id().eq(owner_id));
     if let Some(latest_completed) = latest_completed {
         query = query.filter(visible_occurrences(latest_completed));
     }

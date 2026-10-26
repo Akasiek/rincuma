@@ -59,6 +59,8 @@ async fn undo_successor(
             .checked_sub(1)
             .filter(|count| *count > 0)
             .ok_or_else(TaskError::bad_request)?;
+        // Undo cancels this occurrence's creation, so remove the row entirely.
+        // User-requested task deletion uses soft deletion instead.
         Task::filter_by_id(successor.id)
             .delete()
             .exec(executor)
@@ -82,7 +84,8 @@ async fn validate_latest_completed(
 ) -> Result<(), TaskError> {
     // Occurrences are created under the series lock with fresh auto-increment IDs.
     // Their creation order remains stable even if due dates or completion times change.
-    let latest = Task::filter(Task::fields().series_id().eq(Some(series_id)))
+    let latest = Task::not_deleted()
+        .filter(Task::fields().series_id().eq(Some(series_id)))
         .filter(Task::fields().completed_at().is_some())
         .order_by(Task::fields().id().desc())
         .first()
@@ -113,7 +116,8 @@ async fn validate_successor(
         ));
     }
 
-    let child = Task::filter(Task::fields().parent_id().eq(Some(successor.id)))
+    let child = Task::not_deleted()
+        .filter(Task::fields().parent_id().eq(Some(successor.id)))
         .first()
         .exec(executor)
         .await?;

@@ -30,7 +30,7 @@ function onEscape(event: KeyboardEvent) {
   <AppModal
     :open="open"
     title="Delete task?"
-    description="Delete this task and any subtasks? This cannot be undone."
+    description="Delete this task and any subtasks?"
     size="sm"
     :aria-busy="deleting"
     @update:open="updateOpen"
@@ -53,7 +53,7 @@ function onEscape(event: KeyboardEvent) {
       <div
         class="mt-3 space-y-3 font-sans text-sm leading-relaxed text-light-subtle dark:text-dark-subtle"
       >
-        <p>Delete “{{ task.name }}” and any subtasks? This cannot be undone.</p>
+        <p>Delete “{{ task.name }}” and any subtasks?</p>
         <p v-if="stopsSeries">
           This will stop the repeating series. Previous completed occurrences will be kept.
         </p>

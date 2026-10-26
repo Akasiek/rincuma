@@ -21,7 +21,7 @@ use crate::{
         auth::CurrentUser,
         task::{
             completion::complete_locked,
-            deletion::delete_subtree,
+            deletion::soft_delete_subtree,
             handlers::{reopen, update},
             locking::lock_owned_task,
             recurring_support::{finish_at, occurrences, recurring},
@@ -211,7 +211,7 @@ async fn successor_deletion_wins(state: &AppState, owner_id: i64) -> TestResult 
     let (original, successor, series) = pair(state, owner_id).await?;
     let user = User::get_by_id(&mut db, owner_id).await?;
     let mut transaction = db.transaction().await?;
-    delete_subtree(
+    soft_delete_subtree(
         &mut transaction,
         successor.id,
         owner_id,

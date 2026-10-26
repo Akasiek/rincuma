@@ -7,7 +7,8 @@ pub(super) async fn validate_recurrence_leaf(
     executor: &mut dyn toasty::Executor,
     task_id: i64,
 ) -> Result<(), TaskError> {
-    let child = Task::filter(Task::fields().parent_id().eq(Some(task_id)))
+    let child = Task::not_deleted()
+        .filter(Task::fields().parent_id().eq(Some(task_id)))
         .first()
         .exec(executor)
         .await?;

@@ -5,7 +5,10 @@ use super::{
     user::User,
 };
 use jiff::Timestamp;
-use toasty::{Deferred, Embed, Model};
+use toasty::{
+    Deferred, Embed, Model,
+    stmt::{List, Query},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize, Embed)]
 #[serde(rename_all = "snake_case")]
@@ -28,6 +31,13 @@ pub(crate) struct Task {
     #[index]
     pub(crate) due_at: Option<Timestamp>,
     pub(crate) completed_at: Option<Timestamp>,
+    #[index]
+    pub(crate) deleted_at: Option<Timestamp>,
+    /// Groups the live subtree affected by one deletion, excluding older trash.
+    #[index]
+    pub(crate) deletion_root_id: Option<i64>,
+    /// Only series stopped by this deletion may be resumed by its undo.
+    pub(crate) stopped_series_id: Option<i64>,
     pub(crate) created_at: Timestamp,
     pub(crate) updated_at: Timestamp,
 
@@ -69,12 +79,28 @@ pub(crate) struct Task {
 }
 
 impl Task {
+    /// Default application scope: includes completed tasks, excludes soft deletes.
+    pub(crate) fn not_deleted() -> Query<List<Self>> {
+        Query::<List<Self>>::all().filter(Self::fields().deleted_at().is_none())
+    }
+
     /// Locks an owned task until the enclosing transaction ends, then reads it.
     ///
     /// Toasty has no locking query builder. Assigning the audit timestamp to
     /// itself acquires a write lock without changing its stored value. Reading
     /// after that write observes any completion committed by a competing request.
     pub(crate) async fn lock_owned(
+        executor: &mut dyn toasty::Executor,
+        id: i64,
+        owner_id: i64,
+    ) -> toasty::Result<Option<Self>> {
+        Ok(Self::lock_owned_including_deleted(executor, id, owner_id)
+            .await?
+            .filter(|task| task.deleted_at.is_none()))
+    }
+
+    /// Explicit unscoped lock used only while restoring a deleted task group.
+    pub(crate) async fn lock_owned_including_deleted(
         executor: &mut dyn toasty::Executor,
         id: i64,
         owner_id: i64,
@@ -89,7 +115,11 @@ impl Task {
         .exec(executor)
         .await?;
 
-        Self::get_owned(executor, id, owner_id).await
+        Self::filter_by_id(id)
+            .filter(Self::fields().owner_id().eq(owner_id))
+            .first()
+            .exec(executor)
+            .await
     }
 
     /// Returns a batch of incomplete tasks for one owner, ordered by task ID.
@@ -106,7 +136,8 @@ impl Task {
         last_processed_task_id: i64,
         limit: usize,
     ) -> toasty::Result<Vec<Self>> {
-        Self::filter(Self::fields().owner_id().eq(owner_id))
+        Self::not_deleted()
+            .filter(Self::fields().owner_id().eq(owner_id))
             .filter(Self::fields().completed_at().is_none())
             .filter(Self::fields().due_at().ge(Some(start)))
             .filter(Self::fields().due_at().lt(Some(before)))
@@ -122,10 +153,11 @@ impl Task {
         id: i64,
         owner_id: i64,
     ) -> toasty::Result<Option<Self>> {
-        Ok(Self::filter_by_id(id)
+        Self::not_deleted()
+            .filter(Self::fields().id().eq(id))
+            .filter(Self::fields().owner_id().eq(owner_id))
             .first()
             .exec(executor)
-            .await?
-            .filter(|task| task.owner_id == owner_id))
+            .await
     }
 }

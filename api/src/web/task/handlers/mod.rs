@@ -3,6 +3,7 @@ mod create;
 mod delete;
 mod get;
 mod list;
+mod restore;
 mod update;
 
 #[cfg(test)]
@@ -14,5 +15,6 @@ pub(super) use {
     delete::delete,
     get::get_task,
     list::list,
+    restore::restore,
     update::update,
 };

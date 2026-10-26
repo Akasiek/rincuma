@@ -1,4 +1,5 @@
 use axum::{
+    Json,
     body::Body,
     extract::{Path, State},
     http::{Request, StatusCode},
@@ -36,7 +37,7 @@ async fn task(
 }
 
 #[tokio::test]
-async fn deletes_task_subtree_and_links_but_preserves_unrelated_records()
+async fn soft_deletes_subtree_but_preserves_links_and_unrelated_records()
 -> Result<(), Box<dyn std::error::Error>> {
     let (state, user) = state_with_user().await?;
     let mut db = state.db().clone();
@@ -78,23 +79,18 @@ async fn deletes_task_subtree_and_links_but_preserves_unrelated_records()
         .await?;
     }
 
-    assert_eq!(
-        delete(State(state), CurrentUser(user), Path(removed.id)).await?,
-        StatusCode::NO_CONTENT
-    );
+    let Json(receipt) = delete(State(state), CurrentUser(user), Path(removed.id)).await?;
+    assert_eq!(receipt.task_id, removed.id);
     for task_id in [removed.id, child.id, grandchild.id, second_child.id] {
-        assert!(
-            Task::filter_by_id(task_id)
-                .first()
-                .exec(&mut db)
-                .await?
-                .is_none()
-        );
-        assert!(
+        let deleted = Task::get_by_id(&mut db, task_id).await?;
+        assert!(deleted.deleted_at.is_some());
+        assert!(deleted.deletion_root_id.is_some());
+        assert_eq!(
             TaskTag::filter_by_task_id(task_id)
                 .exec(&mut db)
                 .await?
-                .is_empty()
+                .len(),
+            1
         );
     }
     for retained in [&parent, &sibling] {
@@ -172,7 +168,7 @@ async fn hides_missing_and_unowned_tasks() -> Result<(), Box<dyn std::error::Err
 }
 
 #[tokio::test]
-async fn delete_route_authenticates_and_returns_empty_response()
+async fn delete_route_authenticates_and_returns_undo_metadata()
 -> Result<(), Box<dyn std::error::Error>> {
     let (state, user) = state_with_user().await?;
     let mut db = state.db().clone();
@@ -181,7 +177,7 @@ async fn delete_route_authenticates_and_returns_empty_response()
     let app = get_app_router(state);
     for (authenticated, status) in [
         (false, StatusCode::UNAUTHORIZED),
-        (true, StatusCode::NO_CONTENT),
+        (true, StatusCode::OK),
         (true, StatusCode::NOT_FOUND),
     ] {
         let mut request = Request::builder()
@@ -192,11 +188,18 @@ async fn delete_route_authenticates_and_returns_empty_response()
         }
         let response = app.clone().oneshot(request.body(Body::empty())?).await?;
         assert_eq!(response.status(), status);
-        assert!(
-            axum::body::to_bytes(response.into_body(), 1024)
-                .await?
-                .is_empty()
-        );
+        let body = axum::body::to_bytes(response.into_body(), 4096).await?;
+        if status == StatusCode::OK {
+            let value: serde_json::Value = serde_json::from_slice(&body)?;
+            assert_eq!(
+                value.get("task_id").and_then(serde_json::Value::as_i64),
+                Some(task.id)
+            );
+            assert!(value.get("deleted_at").is_some());
+            assert!(value.get("expires_at").is_some());
+        } else {
+            assert!(body.is_empty());
+        }
     }
     Ok(())
 }

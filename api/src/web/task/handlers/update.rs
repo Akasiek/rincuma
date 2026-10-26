@@ -108,7 +108,8 @@ async fn validate_project_change(
     if let Some(project_id) = project_id {
         validate_active_project(executor, project_id, task.owner_id).await?;
     }
-    let children = Task::filter(Task::fields().parent_id().eq(task.id))
+    let children = Task::not_deleted()
+        .filter(Task::fields().parent_id().eq(task.id))
         .exec(executor)
         .await?;
     if children.iter().any(|child| child.project_id != project_id) {
