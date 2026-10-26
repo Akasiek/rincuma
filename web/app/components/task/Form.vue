@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import type { SaveTaskRequest } from "#shared/types/task";
+import { validateRecurrence } from "~/utils/taskRecurrence";
 import { taskFormValues } from "~/utils/taskForm";
 
-const { formId, errorSummaryId, submitTask, initialValues } = defineProps<{
-  initialValues?: SaveTaskRequest;
-  formId: string;
-  errorSummaryId: string;
-  submitTask: (values: SaveTaskRequest) => Promise<void>;
-}>();
+const { formId, errorSummaryId, submitTask, initialValues, recurrenceReadonly, occurrenceCount } =
+  defineProps<{
+    initialValues?: SaveTaskRequest;
+    recurrenceReadonly?: boolean;
+    occurrenceCount?: number;
+    formId: string;
+    errorSummaryId: string;
+    submitTask: (values: SaveTaskRequest) => Promise<void>;
+  }>();
 
 const emit = defineEmits<{
   submitStart: [];
@@ -24,6 +28,7 @@ const fieldLabels: Record<keyof SaveTaskRequest, string> = {
   project_id: "Project",
   parent_id: "Parent task",
   tag_ids: "Tags",
+  recurrence: "Repeat",
 };
 
 const fieldValidation = {
@@ -33,10 +38,12 @@ const fieldValidation = {
   validateOnModelUpdate: false,
 };
 
-const { handleSubmit, defineField, errors, errorBag, isSubmitting, meta } =
+const { handleSubmit, defineField, errors, errorBag, isSubmitting, meta, values } =
   useForm<SaveTaskRequest>({
     validateOnMount: false,
     validationSchema: {
+      recurrence: (value: SaveTaskRequest["recurrence"]) =>
+        validateRecurrence(value, values.due_at, occurrenceCount),
       name: (value: string) => {
         const name = value?.trim() ?? "";
         if (!name) {
@@ -51,6 +58,7 @@ const { handleSubmit, defineField, errors, errorBag, isSubmitting, meta } =
     initialValues: taskFormValues(initialValues),
   });
 
+const [recurrence] = defineField("recurrence", fieldValidation);
 const [dueAt] = defineField("due_at", fieldValidation);
 const [projectId] = defineField("project_id", fieldValidation);
 const [tagIds] = defineField("tag_ids", fieldValidation);
@@ -115,6 +123,16 @@ function onSubmit(event: Event) {
         <div class="min-w-0 flex-1">
           <TimeDatePicker v-model="dueAt" compact />
         </div>
+        <TaskRecurrencePicker
+          v-if="!recurrenceReadonly"
+          v-model="recurrence"
+          :id="`${formId}-recurrence`"
+          :due-at="dueAt"
+          :occurrence-count="occurrenceCount"
+          :disabled="isSubmitting"
+          :invalid="!!errors.recurrence"
+          :describedby="errors.recurrence ? errorSummaryId : undefined"
+        />
         <ProjectSelect
           v-model="projectId"
           class="min-w-0"

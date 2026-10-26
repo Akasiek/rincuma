@@ -31,6 +31,9 @@ const loadError = computed(() => {
     ? "This task is no longer available."
     : "Could not load this task. Please try again.";
 });
+const recurrenceReadonly = computed(
+  () => !!task.value?.completed_at || (!!task.value?.series_id && !task.value?.recurrence),
+);
 const saveError = ref("");
 const validationErrors = ref<{ fieldId?: string; message: string }[]>([]);
 const isSubmitting = ref(false);
@@ -60,12 +63,21 @@ async function saveTask(values: SaveTaskRequest) {
   }
 
   try {
-    await updateTask(task.value.id, { ...values, parent_id: task.value.parent_id });
+    await updateTask(task.value.id, {
+      ...values,
+      parent_id: task.value.parent_id,
+      recurrence: recurrenceReadonly.value ? undefined : values.recurrence,
+    });
   } catch (error) {
     const status = (error as { response?: { status?: number } })?.response?.status;
+    if (status === 409) {
+      saveError.value =
+        "The task or its series changed. Reopen the editor and try again. Only an active task without subtasks can repeat.";
+      return;
+    }
     saveError.value =
       status === 400
-        ? "Check the task fields. Its project must match its parent and subtasks."
+        ? "Check the task fields and repeat settings. Its project must match its parent and subtasks."
         : "Could not save the task. Check that it and its selected project and tags are still available, then try again.";
     return;
   }
@@ -102,6 +114,8 @@ await taskRequest;
     <TaskForm
       v-else-if="task"
       :initial-values="task"
+      :recurrence-readonly="recurrenceReadonly"
+      :occurrence-count="task.recurrence?.occurrence_count"
       :form-id="formId"
       :error-summary-id="errorSummaryId"
       :submit-task="saveTask"
