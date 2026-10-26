@@ -26,7 +26,7 @@ defineProps<{
     </DialogTrigger>
 
     <DialogPortal>
-      <DialogOverlay class="modal-overlay fixed inset-0 z-40 bg-black/40" />
+      <DialogOverlay class="modal-overlay fixed inset-0 z-50 bg-black/40" />
 
       <DialogContent
         :aria-describedby="description ? undefined : null"
