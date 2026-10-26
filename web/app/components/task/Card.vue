@@ -8,6 +8,7 @@ import CompletionButton from "./card/CompletionButton.vue";
 const props = defineProps<{ task: Task }>();
 const emit = defineEmits<{ updated: [task: Task] }>();
 const { completeTask, reopenTask } = useTask();
+const { showCompletedTask, dismissCompletedTask } = useTaskCompletionToast();
 const isUpdatingCompletion = ref(false);
 const completionError = ref("");
 const descriptionOpen = ref(false);
@@ -24,9 +25,18 @@ async function toggleCompletion() {
   try {
     const updateCompletion = props.task.completed_at ? reopenTask : completeTask;
     const task = await updateCompletion(props.task.id);
+    if (task.completed_at) {
+      showCompletedTask(task);
+    } else {
+      dismissCompletedTask(task);
+    }
     emit("updated", task);
-  } catch {
-    completionError.value = "Could not change the task status. Please try again.";
+  } catch (error) {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    completionError.value =
+      status === 409 && props.task.completed_at
+        ? "Cannot reopen this occurrence because its series or next occurrence has changed."
+        : "Could not change the task status. Please try again.";
   } finally {
     isUpdatingCompletion.value = false;
   }
