@@ -41,13 +41,14 @@ pub(in crate::web::tag) async fn list(
     let page = Page::new(request.limit, request.offset).ok_or_else(TagError::bad_request)?;
     let mut db = state.db().clone();
 
-    let total = owned_tags(user.id).count().exec(&mut db).await?;
-    let tags = sorted_tags(owned_tags(user.id), request.sort_by, request.order)
+    let query = owned_tags(user.id);
+    let total = query.clone().count().exec(&mut db).await?;
+    let tags = sorted_tags(query, request.sort_by, request.order)
         .limit(page.limit)
         .offset(page.offset)
         .exec(&mut db)
         .await?;
-    let items = tags.into_iter().map(Into::into).collect();
+    let items = TagResponse::for_list(&mut db, user.id, tags).await?;
 
     Ok(Json(PageResponse::new(items, total, &page)))
 }

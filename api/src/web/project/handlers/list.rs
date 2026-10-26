@@ -51,21 +51,14 @@ pub(in crate::web::project) async fn list(
     let page = Page::new(request.limit, request.offset).ok_or_else(ProjectError::bad_request)?;
     let mut db = state.db().clone();
 
-    let total = filtered_projects(user.id, request.archived)
-        .count()
-        .exec(&mut db)
-        .await?;
-    let query = sorted_projects(
-        filtered_projects(user.id, request.archived),
-        request.sort_by,
-        request.order,
-    );
-    let projects = query
+    let query = filtered_projects(user.id, request.archived);
+    let total = query.clone().count().exec(&mut db).await?;
+    let projects = sorted_projects(query, request.sort_by, request.order)
         .limit(page.limit)
         .offset(page.offset)
         .exec(&mut db)
         .await?;
-    let items = projects.into_iter().map(Into::into).collect();
+    let items = ProjectResponse::for_list(&mut db, user.id, projects).await?;
 
     Ok(Json(PageResponse::new(items, total, &page)))
 }
