@@ -31,6 +31,14 @@ const refreshing = computed(() => status.value === "pending");
 async function updateTask(updatedTask: Task) {
   data.value = tasks.value
     .map((task) => (task.id === updatedTask.id ? updatedTask : task))
+    .filter(
+      (task) =>
+        !updatedTask.completed_at ||
+        !updatedTask.series_id ||
+        !task.completed_at ||
+        task.series_id !== updatedTask.series_id ||
+        task.id === updatedTask.id,
+    )
     .filter((task) => {
       const status = query.value.status ?? "all";
       if (status === "all") {

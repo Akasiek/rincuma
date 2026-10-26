@@ -7,11 +7,16 @@ export type RecurrenceEnd =
   | { mode: "through"; date: string }
   | { mode: "after"; count: number };
 
+export type RecurrencePattern =
+  | { kind: "weekdays"; days: number[] }
+  | { kind: "monthly_weekday"; ordinal: number; weekday: number };
+
 export interface RecurrenceConfig {
   frequency: RecurrenceFrequency;
   interval: number;
   time_zone: string;
   end: RecurrenceEnd;
+  pattern?: RecurrencePattern | null;
 }
 
 export interface TaskRecurrence extends RecurrenceConfig {

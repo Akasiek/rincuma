@@ -116,6 +116,7 @@ await taskRequest;
       :initial-values="task"
       :recurrence-readonly="recurrenceReadonly"
       :occurrence-count="task.recurrence?.occurrence_count"
+      :recurrence-anchor="task.recurrence?.anchor"
       :form-id="formId"
       :error-summary-id="errorSummaryId"
       :submit-task="saveTask"

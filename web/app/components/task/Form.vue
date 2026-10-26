@@ -3,15 +3,23 @@ import type { SaveTaskRequest } from "#shared/types/task";
 import { validateRecurrence } from "~/utils/taskRecurrence";
 import { taskFormValues } from "~/utils/taskForm";
 
-const { formId, errorSummaryId, submitTask, initialValues, recurrenceReadonly, occurrenceCount } =
-  defineProps<{
-    initialValues?: SaveTaskRequest;
-    recurrenceReadonly?: boolean;
-    occurrenceCount?: number;
-    formId: string;
-    errorSummaryId: string;
-    submitTask: (values: SaveTaskRequest) => Promise<void>;
-  }>();
+const {
+  formId,
+  errorSummaryId,
+  submitTask,
+  initialValues,
+  recurrenceReadonly,
+  occurrenceCount,
+  recurrenceAnchor,
+} = defineProps<{
+  initialValues?: SaveTaskRequest;
+  recurrenceReadonly?: boolean;
+  occurrenceCount?: number;
+  recurrenceAnchor?: string;
+  formId: string;
+  errorSummaryId: string;
+  submitTask: (values: SaveTaskRequest) => Promise<void>;
+}>();
 
 const emit = defineEmits<{
   submitStart: [];
@@ -129,6 +137,7 @@ function onSubmit(event: Event) {
           :id="`${formId}-recurrence`"
           :due-at="dueAt"
           :occurrence-count="occurrenceCount"
+          :anchor="recurrenceAnchor"
           :disabled="isSubmitting"
           :invalid="!!errors.recurrence"
           :describedby="errors.recurrence ? errorSummaryId : undefined"

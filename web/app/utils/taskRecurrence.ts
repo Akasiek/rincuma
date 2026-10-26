@@ -1,4 +1,9 @@
-import type { RecurrenceConfig } from "#shared/types/task";
+import type {
+  RecurrenceConfig,
+  RecurrenceEnd,
+  RecurrenceFrequency,
+  RecurrencePattern,
+} from "#shared/types/task";
 import { parseDate } from "@internationalized/date";
 
 function positiveInteger(value: number): boolean {
@@ -22,32 +27,97 @@ export function validateRecurrenceConfig(
   if (!rule) {
     return true;
   }
-  if (!positiveInteger(rule.interval)) {
-    return "Enter a whole repeat interval greater than zero.";
+
+  return (
+    validatePattern(rule.frequency, rule.pattern) ??
+    validateInterval(rule.interval) ??
+    validateTimeZone(rule.time_zone) ??
+    validateEnd(rule.end, occurrenceCount) ??
+    true
+  );
+}
+
+function validatePattern(
+  frequency: RecurrenceFrequency,
+  pattern: RecurrencePattern | null | undefined,
+): string | undefined {
+  switch (pattern?.kind) {
+    case "weekdays":
+      return validateWeekdays(frequency, pattern.days);
+    case "monthly_weekday":
+      return validateMonthlyWeekday(frequency, pattern.ordinal, pattern.weekday);
+    default:
+      return undefined;
   }
-  if (!rule.time_zone.trim() || /^[+-]/.test(rule.time_zone)) {
+}
+
+function validateWeekdays(frequency: RecurrenceFrequency, days: number[]): string | undefined {
+  const valid =
+    frequency === "weekly" &&
+    days.length > 0 &&
+    new Set(days).size === days.length &&
+    days.every(isWeekday);
+
+  return valid ? undefined : "Select at least one valid weekday for a weekly repeat.";
+}
+
+function validateMonthlyWeekday(
+  frequency: RecurrenceFrequency,
+  ordinal: number,
+  weekday: number,
+): string | undefined {
+  const validOrdinal =
+    ordinal === -1 || (Number.isInteger(ordinal) && ordinal >= 1 && ordinal <= 5);
+  const valid = frequency === "monthly" && validOrdinal && isWeekday(weekday);
+
+  return valid ? undefined : "Select a valid weekday and occurrence for a monthly repeat.";
+}
+
+function isWeekday(day: number): boolean {
+  return Number.isInteger(day) && day >= 1 && day <= 7;
+}
+
+function validateInterval(interval: number): string | undefined {
+  return positiveInteger(interval) ? undefined : "Enter a whole repeat interval greater than zero.";
+}
+
+function validateTimeZone(timeZone: string): string | undefined {
+  if (!timeZone.trim() || /^[+-]/.test(timeZone)) {
     return "Enter an IANA time zone, such as Europe/Warsaw.";
   }
 
   try {
-    new Intl.DateTimeFormat("en-GB", { timeZone: rule.time_zone });
+    new Intl.DateTimeFormat("en-GB", { timeZone });
   } catch {
     return "Enter a valid IANA time zone, such as Europe/Warsaw.";
   }
 
-  if (rule.end.mode === "after") {
-    if (!positiveInteger(rule.end.count) || rule.end.count < occurrenceCount) {
-      return `Enter an occurrence limit of at least ${occurrenceCount}.`;
-    }
+  return undefined;
+}
+
+function validateEnd(end: RecurrenceEnd, occurrenceCount: number): string | undefined {
+  switch (end.mode) {
+    case "after":
+      return validateOccurrenceLimit(end.count, occurrenceCount);
+    case "through":
+      return validateEndDate(end.date);
+    default:
+      return undefined;
+  }
+}
+
+function validateOccurrenceLimit(count: number, occurrenceCount: number): string | undefined {
+  const invalid = !positiveInteger(count) || count < occurrenceCount;
+
+  return invalid ? `Enter an occurrence limit of at least ${occurrenceCount}.` : undefined;
+}
+
+function validateEndDate(date: string): string | undefined {
+  try {
+    parseDate(date);
+  } catch {
+    return "Enter a valid end date.";
   }
 
-  if (rule.end.mode === "through") {
-    try {
-      parseDate(rule.end.date);
-    } catch {
-      return "Enter a valid end date.";
-    }
-  }
-
-  return true;
+  return undefined;
 }

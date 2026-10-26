@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { RecurrenceConfig } from "#shared/types/task";
+import { recurrenceReference } from "~/utils/taskRecurrencePattern";
 import type { SelectModelValue } from "#shared/types/select";
 
 const props = defineProps<{
   id: string;
   dueAt?: string | null;
+  anchor?: string;
   occurrenceCount?: number;
   disabled?: boolean;
   invalid?: boolean;
@@ -34,12 +36,16 @@ function updateFrequency(value: SelectModelValue) {
     return;
   }
 
+  const zone = model.value?.time_zone ?? timeZone.value;
+  const weekday = recurrenceReference(props.dueAt, zone).weekday;
+  const pattern = value === "weekly" ? { kind: "weekdays" as const, days: [weekday] } : undefined;
   model.value = {
     interval: 1,
     time_zone: timeZone.value,
     end: { mode: "never" },
     ...model.value,
     frequency: value,
+    pattern: model.value?.frequency === value ? model.value.pattern : pattern,
   };
 }
 
@@ -47,6 +53,21 @@ function updateRule(patch: Partial<RecurrenceConfig>) {
   if (model.value) {
     model.value = { ...model.value, ...patch };
   }
+}
+
+function updateTimeZone(value: string | null) {
+  const rule = model.value;
+  if (!rule) {
+    return;
+  }
+
+  const weekday = recurrenceReference(props.dueAt, rule.time_zone, props.anchor).weekday;
+  const pattern =
+    rule.frequency === "weekly" && !rule.pattern
+      ? { kind: "weekdays" as const, days: [weekday] }
+      : rule.pattern;
+
+  updateRule({ time_zone: value ?? "", pattern });
 }
 
 function updateEnd(value: SelectModelValue) {
@@ -91,10 +112,17 @@ function updateEnd(value: SelectModelValue) {
             :id="`${id}-zone`"
             :model-value="model.time_zone"
             :disabled="disabled"
-            @update:model-value="updateRule({ time_zone: $event ?? '' })"
+            @update:model-value="updateTimeZone"
           />
         </div>
       </div>
+      <TaskRecurrencePatternFields
+        v-model="model"
+        :id="`${id}-pattern`"
+        :due-at="dueAt"
+        :anchor="anchor"
+        :disabled="disabled"
+      />
       <AppSelect
         :id="`${id}-end`"
         label="Ends"

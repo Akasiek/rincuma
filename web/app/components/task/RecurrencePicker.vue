@@ -2,9 +2,12 @@
 import type { RecurrenceConfig } from "#shared/types/task";
 import { validateRecurrenceConfig } from "~/utils/taskRecurrence";
 
+import { cloneRecurrenceConfig, recurrenceSummary } from "~/utils/taskRecurrencePattern";
+
 const props = defineProps<{
   id: string;
   dueAt?: string | null;
+  anchor?: string;
   occurrenceCount?: number;
   disabled?: boolean;
   invalid?: boolean;
@@ -15,22 +18,12 @@ const open = ref(false);
 const draft = ref<RecurrenceConfig | null>();
 const error = ref("");
 const errorId = `${props.id}-error`;
-const units = { daily: "day", weekly: "week", monthly: "month" };
-const summary = computed(() => {
-  if (!model.value) {
-    return "Does not repeat";
-  }
-  const unit = units[model.value.frequency];
-  if (model.value.interval === 1) {
-    return `Every ${unit}`;
-  }
-  return `Every ${model.value.interval} ${unit}s`;
-});
+const summary = computed(() => recurrenceSummary(model.value));
 
 watch(open, (isOpen) => {
   if (isOpen) {
     const rule = model.value;
-    draft.value = rule ? { ...rule, end: { ...rule.end } } : rule;
+    draft.value = rule ? cloneRecurrenceConfig(rule) : rule;
     error.value = "";
   }
 });
@@ -73,6 +66,7 @@ function apply() {
         v-model="draft"
         :id="`${id}-draft`"
         :due-at="dueAt"
+        :anchor="anchor"
         :occurrence-count="occurrenceCount"
         :invalid="!!error"
         :describedby="error ? errorId : undefined"
