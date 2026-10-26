@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Task } from "#shared/types/task";
 import TaskCardDueDate from "./DueDate.vue";
+import { recurrenceSummary } from "~/utils/taskRecurrencePattern";
 
 defineProps<{ task: Task; descriptionId: string }>();
 const route = useRoute();
@@ -29,18 +30,14 @@ const descriptionOpen = defineModel<boolean>("descriptionOpen", { default: false
       </NuxtLink>
     </h3>
     <div
-      v-if="task.due_at || task.description || task.parent_id !== null"
+      v-if="task.due_at || task.description || task.recurrence || task.parent_id !== null"
       class="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[0.7em] leading-4 text-light-subtle dark:text-dark-subtle"
     >
       <TaskCardDueDate v-if="task.due_at" :due-at="task.due_at" :completed="!!task.completed_at" />
 
-      <span
-        v-if="task.recurrence"
-        class="inline-flex items-center gap-1 font-sans"
-        title="Repeating task"
-      >
+      <span v-if="task.recurrence" class="inline-flex items-center gap-1 font-sans">
         <Icon name="carbon:renew" class="size-3" aria-hidden="true" />
-        Repeats
+        {{ recurrenceSummary(task.recurrence) }}
       </span>
 
       <span v-if="task.parent_id !== null" class="inline-flex items-center gap-1 font-sans">
