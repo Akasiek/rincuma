@@ -40,7 +40,7 @@ async function updateTask(updatedTask: Task) {
       return !!task.completed_at === (status === "completed");
     });
 
-  await refreshTaskLists(taskListKey.value);
+  await refreshTaskLists();
 }
 
 function toggleGroup(id: string) {
