@@ -11,11 +11,13 @@ const {
   recurrenceReadonly,
   occurrenceCount,
   recurrenceAnchor,
+  recurringTask,
 } = defineProps<{
   initialValues?: SaveTaskRequest;
   recurrenceReadonly?: boolean;
   occurrenceCount?: number;
   recurrenceAnchor?: string;
+  recurringTask?: boolean;
   formId: string;
   errorSummaryId: string;
   submitTask: (values: SaveTaskRequest) => Promise<void>;
@@ -68,6 +70,13 @@ const { handleSubmit, defineField, errors, errorBag, isSubmitting, meta, values 
 
 const [recurrence] = defineField("recurrence", fieldValidation);
 const [dueAt] = defineField("due_at", fieldValidation);
+const showOccurrenceDateNotice = computed(
+  () =>
+    recurringTask &&
+    !!dueAt.value &&
+    dueAt.value !== initialValues?.due_at &&
+    (!!recurrence.value || recurrenceReadonly),
+);
 const [projectId] = defineField("project_id", fieldValidation);
 const [tagIds] = defineField("tag_ids", fieldValidation);
 const [priority] = defineField("priority", fieldValidation);
@@ -129,7 +138,11 @@ function onSubmit(event: Event) {
         class="mt-1 mb-3 flex w-full min-w-0 items-center gap-1 border-y-2 border-light-highlight-med py-2 dark:border-dark-highlight-med"
       >
         <div class="min-w-0 flex-1">
-          <TimeDatePicker v-model="dueAt" compact />
+          <TimeDatePicker
+            v-model="dueAt"
+            compact
+            :describedby="showOccurrenceDateNotice ? `${formId}-due-at-notice` : undefined"
+          />
         </div>
         <TaskRecurrencePicker
           v-if="!recurrenceReadonly"
@@ -190,5 +203,17 @@ function onSubmit(event: Event) {
         />
       </Field>
     </fieldset>
+
+    <p
+      v-if="showOccurrenceDateNotice"
+      :id="`${formId}-due-at-notice`"
+      role="status"
+      class="mb-3 px-4 font-sans text-xs text-light-subtle dark:text-dark-subtle"
+    >
+      Changing the date affects only this occurrence.
+      <template v-if="!recurrenceReadonly"
+        >If you also change repeat settings, the new schedule starts from this date.</template
+      >
+    </p>
   </form>
 </template>
