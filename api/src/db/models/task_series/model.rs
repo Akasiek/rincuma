@@ -13,6 +13,8 @@ use jiff::{
 };
 use toasty::{Deferred, Embed, Model};
 
+use super::SeriesPattern;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Embed, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum SeriesFrequency {
@@ -47,6 +49,7 @@ pub(crate) struct TaskSeries {
     /// Intended local date and time, unaffected by month clamping or DST gaps.
     pub(crate) anchor: DateTime,
     pub(crate) end: SeriesEnd,
+    pub(crate) pattern: Option<SeriesPattern>,
 
     /// Counts created tasks, including the first, but excluding undone successors.
     #[default(1)]
@@ -117,6 +120,7 @@ impl TryFrom<&TaskSeries> for Schedule {
             &series.time_zone,
             series.anchor,
             series.end.into(),
-        )
+        )?
+        .with_pattern(series.pattern.map(Into::into))
     }
 }

@@ -31,6 +31,7 @@ type TestResult = Result<(), Box<dyn std::error::Error>>;
 
 fn config(end: SeriesEnd) -> RecurrenceConfig {
     RecurrenceConfig {
+        pattern: None,
         frequency: SeriesFrequency::Monthly,
         interval: 1,
         time_zone: "Europe/Warsaw".to_owned(),
@@ -586,5 +587,270 @@ async fn postgres_configuration_changes_serialize_with_undo() -> TestResult {
             .occurrence_count,
         1
     );
+    Ok(())
+}
+
+async fn verify_advanced_pattern_lifecycle(state: &AppState, owner_id: i64) -> TestResult {
+    use crate::recurrence::Pattern;
+    for (frequency, pattern, expected) in [
+        (
+            SeriesFrequency::Weekly,
+            Pattern::Weekdays { days: vec![4, 1] },
+            "2028-02-03T08:00:00Z",
+        ),
+        (
+            SeriesFrequency::Monthly,
+            Pattern::MonthlyWeekday {
+                ordinal: 2,
+                weekday: 5,
+            },
+            "2028-02-11T08:00:00Z",
+        ),
+        (
+            SeriesFrequency::Monthly,
+            Pattern::MonthlyWeekday {
+                ordinal: -1,
+                weekday: 5,
+            },
+            "2028-02-25T08:00:00Z",
+        ),
+    ] {
+        let mut rule = config(SeriesEnd::After { count: 3 });
+        rule.frequency = frequency;
+        rule.pattern = Some(pattern);
+        let mut input = request()?;
+        input.recurrence = RecurrenceChange::Set(rule.clone());
+        let mut db = state.db().clone();
+        let user = User::get_by_id(&mut db, owner_id).await?;
+        let (_, Json(created)) =
+            create(State(state.clone()), CurrentUser(user), Json(input)).await?;
+        let response_pattern = created.recurrence.ok_or("missing rule")?.config.pattern;
+        if let Some(Pattern::Weekdays { days }) = &response_pattern {
+            assert_eq!(days, &vec![1, 4]);
+        }
+        finish_at(state, owner_id, created.id, "2028-01-31T08:05:00Z").await?;
+        let mut series =
+            TaskSeries::get_by_id(&mut db, created.series_id.ok_or("missing series")?).await?;
+        let next =
+            Task::get_by_id(&mut db, series.latest_task_id.ok_or("missing successor")?).await?;
+        assert_eq!(next.due_at, Some(expected.parse()?));
+        let user = User::get_by_id(&mut db, owner_id).await?;
+        let Json(response) =
+            get_task(State(state.clone()), CurrentUser(user), Path(next.id)).await?;
+        assert_eq!(
+            response
+                .recurrence
+                .ok_or("missing successor rule")?
+                .config
+                .pattern,
+            response_pattern
+        );
+        // Reordering weekday selections is a no-op and must not block undo.
+        save(
+            state,
+            &next,
+            edit(&next, RecurrenceChange::Set(rule.clone())),
+        )
+        .await?;
+        reopen_at(state, owner_id, created.id, "2028-01-31T08:10:00Z").await?;
+        series = TaskSeries::get_by_id(&mut db, series.id).await?;
+        assert_eq!(series.occurrence_count, 1);
+        assert_eq!(series.latest_task_id, Some(created.id));
+        finish_at(state, owner_id, created.id, "2028-01-31T08:15:00Z").await?;
+        series = TaskSeries::get_by_id(&mut db, series.id).await?;
+        let next = Task::get_by_id(
+            &mut db,
+            series.latest_task_id.ok_or("missing recreated successor")?,
+        )
+        .await?;
+        assert_eq!(next.due_at, Some(expected.parse()?));
+        rule.pattern = match rule.frequency {
+            SeriesFrequency::Weekly => Some(Pattern::Weekdays { days: vec![2, 5] }),
+            _ => Some(Pattern::MonthlyWeekday {
+                ordinal: 1,
+                weekday: 1,
+            }),
+        };
+        save(state, &next, edit(&next, RecurrenceChange::Set(rule))).await?;
+        assert!(matches!(
+            reopen_at(state, owner_id, created.id, "2028-01-31T08:20:00Z").await,
+            Err(TaskError::Conflict(..))
+        ));
+    }
+    Ok(())
+}
+
+#[tokio::test]
+async fn advanced_patterns_round_trip_complete_and_undo() -> TestResult {
+    let (state, user) = state_with_user().await?;
+    verify_advanced_pattern_lifecycle(&state, user.id).await
+}
+
+#[tokio::test]
+async fn invalid_patterns_roll_back_task_and_series_creation() -> TestResult {
+    use crate::recurrence::Pattern;
+    let (state, user) = state_with_user().await?;
+    let mut db = state.db().clone();
+    let owner_id = user.id;
+    for (frequency, pattern) in [
+        (SeriesFrequency::Weekly, Pattern::Weekdays { days: vec![] }),
+        (
+            SeriesFrequency::Weekly,
+            Pattern::Weekdays { days: vec![1, 1] },
+        ),
+        (
+            SeriesFrequency::Monthly,
+            Pattern::MonthlyWeekday {
+                ordinal: 6,
+                weekday: 1,
+            },
+        ),
+        (SeriesFrequency::Daily, Pattern::Weekdays { days: vec![1] }),
+    ] {
+        let mut rule = config(SeriesEnd::Never);
+        rule.frequency = frequency;
+        rule.pattern = Some(pattern);
+        let mut input = request()?;
+        input.recurrence = RecurrenceChange::Set(rule);
+        let user = User::get_by_id(&mut db, owner_id).await?;
+        assert!(matches!(
+            create(State(state.clone()), CurrentUser(user), Json(input)).await,
+            Err(TaskError::BadRequest(_))
+        ));
+    }
+    assert_eq!(
+        Task::filter(Task::fields().owner_id().eq(owner_id))
+            .count()
+            .exec(&mut db)
+            .await?,
+        0
+    );
+    assert_eq!(
+        TaskSeries::filter(TaskSeries::fields().owner_id().eq(owner_id))
+            .count()
+            .exec(&mut db)
+            .await?,
+        0
+    );
+    Ok(())
+}
+
+#[tokio::test]
+#[ignore = "requires an empty PostgreSQL database in RINCUMA_TEST_POSTGRES_URL"]
+async fn postgres_advanced_patterns_round_trip_complete_and_undo() -> TestResult {
+    use crate::config::AppConfig;
+    use std::path::PathBuf;
+    let url = std::env::var("RINCUMA_TEST_POSTGRES_URL")?;
+    let mut db = toasty::Db::builder()
+        .models(toasty::models!(crate::*))
+        .connect(&url)
+        .await?;
+    db.push_schema().await?;
+    let now: Timestamp = "2028-01-31T08:00:00Z".parse()?;
+    let user = toasty::create!(User {
+        email: "advanced-patterns@example.com".to_owned(),
+        password_hash: "unused".to_owned(),
+        created_at: now,
+        updated_at: now,
+    })
+    .exec(&mut db)
+    .await?;
+    let state = AppState::new(AppConfig::for_test(PathBuf::new()), db);
+    verify_advanced_pattern_lifecycle(&state, user.id).await
+}
+
+#[tokio::test]
+async fn selecting_the_existing_implicit_weekday_is_a_noop() -> TestResult {
+    use crate::recurrence::Pattern;
+    let (state, user) = state_with_user().await?;
+    let owner_id = user.id;
+    let mut rule = config(SeriesEnd::Never);
+    rule.frequency = SeriesFrequency::Weekly;
+    let mut input = request()?;
+    input.recurrence = RecurrenceChange::Set(rule.clone());
+    let (_, Json(first)) = create(State(state.clone()), CurrentUser(user), Json(input)).await?;
+    finish_at(&state, owner_id, first.id, "2028-01-31T08:05:00Z").await?;
+    let mut db = state.db().clone();
+    let series_id = first.series_id.ok_or("missing series")?;
+    let series = TaskSeries::get_by_id(&mut db, series_id).await?;
+    let next = Task::get_by_id(&mut db, series.latest_task_id.ok_or("missing successor")?).await?;
+    rule.pattern = Some(Pattern::Weekdays { days: vec![1] });
+    save(&state, &next, edit(&next, RecurrenceChange::Set(rule))).await?;
+    let unchanged = Task::get_by_id(&mut db, next.id).await?;
+    assert_eq!(unchanged.recurrence_modified_at, None);
+    reopen_at(&state, owner_id, first.id, "2028-01-31T08:10:00Z").await?;
+    Ok(())
+}
+
+#[tokio::test]
+async fn advanced_patterns_have_a_validated_http_contract() -> TestResult {
+    let (state, user) = state_with_user().await?;
+    let mut db = state.db().clone();
+    let token = create_session(&mut db, user.id, Timestamp::now()).await?;
+    let cookie = format!("rincuma_session={}", token.expose());
+    let app = get_app_router(state);
+    for (frequency, pattern, expected) in [
+        (
+            "weekly",
+            r#"{"kind":"weekdays","days":[4,1]}"#,
+            StatusCode::CREATED,
+        ),
+        (
+            "monthly",
+            r#"{"kind":"monthly_weekday","ordinal":-1,"weekday":5}"#,
+            StatusCode::CREATED,
+        ),
+        (
+            "monthly",
+            r#"{"kind":"monthly_weekday","ordinal":5,"weekday":1}"#,
+            StatusCode::CREATED,
+        ),
+        (
+            "weekly",
+            r#"{"kind":"weekdays","days":[]}"#,
+            StatusCode::BAD_REQUEST,
+        ),
+        (
+            "monthly",
+            r#"{"kind":"monthly_weekday","ordinal":6,"weekday":1}"#,
+            StatusCode::BAD_REQUEST,
+        ),
+        (
+            "daily",
+            r#"{"kind":"weekdays","days":[1]}"#,
+            StatusCode::BAD_REQUEST,
+        ),
+        (
+            "weekly",
+            r#"{"kind":"weekdays","days":[1],"ordinal":2}"#,
+            StatusCode::UNPROCESSABLE_ENTITY,
+        ),
+    ] {
+        let payload = format!(
+            r#"{{"name":"Pattern wire task","due_at":"2028-01-31T08:00:00Z","recurrence":{{"frequency":"{frequency}","interval":1,"time_zone":"Europe/Warsaw","end":{{"mode":"never"}},"pattern":{pattern}}}}}"#
+        );
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/tasks")
+                    .header("Cookie", &cookie)
+                    .header("Content-Type", "application/json")
+                    .body(Body::from(payload))?,
+            )
+            .await?;
+        assert_eq!(response.status(), expected);
+        if expected == StatusCode::CREATED {
+            let bytes = axum::body::to_bytes(response.into_body(), 16_384).await?;
+            let body = String::from_utf8(bytes.to_vec())?;
+            let expected_pattern = if frequency == "weekly" {
+                r#"{"kind":"weekdays","days":[1,4]}"#
+            } else {
+                pattern
+            };
+            assert!(body.contains(&format!("\"pattern\":{expected_pattern}")));
+        }
+    }
     Ok(())
 }

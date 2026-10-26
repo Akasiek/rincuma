@@ -9,6 +9,8 @@ pub(in crate::web::task) struct RecurrenceConfig {
     pub interval: u32,
     pub time_zone: String,
     pub end: SeriesEnd,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pattern: Option<crate::recurrence::Pattern>,
 }
 
 #[derive(Default)]

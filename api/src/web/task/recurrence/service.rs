@@ -1,8 +1,8 @@
-use jiff::{Timestamp, tz::TimeZone};
+use jiff::{Timestamp, civil::DateTime, tz::TimeZone};
 
 use super::{RecurrenceChange, RecurrenceConfig};
 use crate::{
-    db::{SeriesEnd, Task, TaskSeries},
+    db::{SeriesEnd, SeriesPattern, Task, TaskSeries},
     recurrence::Schedule,
     web::task::{TaskError, relations::validate_recurrence_leaf},
 };
@@ -81,6 +81,9 @@ fn normalize_config(config: &mut RecurrenceConfig, due_at: Timestamp) -> Result<
     let canonical_name = zone.iana_name().ok_or_else(TaskError::bad_request)?;
     canonical_name.clone_into(&mut config.time_zone);
 
+    if let Some(crate::recurrence::Pattern::Weekdays { days }) = &mut config.pattern {
+        days.sort_unstable();
+    }
     Schedule::new(
         config.frequency.into(),
         config.interval,
@@ -88,6 +91,7 @@ fn normalize_config(config: &mut RecurrenceConfig, due_at: Timestamp) -> Result<
         due_at.to_zoned(zone).datetime(),
         config.end.into(),
     )
+    .and_then(|schedule| schedule.with_pattern(config.pattern.clone()))
     .map_err(|_| TaskError::bad_request())?;
 
     Ok(())
@@ -117,6 +121,7 @@ async fn enable(
         time_zone: config.time_zone.clone(),
         anchor,
         end: config.end,
+        pattern: config.pattern.as_ref().map(SeriesPattern::from),
         latest_task_id: Some(task.id),
         created_at: now,
         updated_at: now,
@@ -154,7 +159,12 @@ async fn change_rule(
     let unchanged = series.frequency == config.frequency
         && series.interval == config.interval
         && series.time_zone == config.time_zone
-        && series.end == config.end;
+        && series.end == config.end
+        && equivalent_pattern(series.pattern, series.anchor)
+            == equivalent_pattern(
+                config.pattern.as_ref().map(SeriesPattern::from),
+                series.anchor,
+            );
     if unchanged {
         return Ok(());
     }
@@ -169,6 +179,7 @@ async fn change_rule(
         time_zone: config.time_zone.clone(),
         anchor,
         end: config.end,
+        pattern: config.pattern.as_ref().map(SeriesPattern::from),
         updated_at: now,
     })
     .exec(executor)
@@ -182,6 +193,15 @@ async fn change_rule(
     .await?;
 
     Ok(())
+}
+
+/// A weekly rule on only its original weekday is equivalent to the implicit rule.
+fn equivalent_pattern(pattern: Option<SeriesPattern>, anchor: DateTime) -> Option<SeriesPattern> {
+    let anchor_mask = 1_u32 << anchor.date().weekday().to_monday_zero_offset();
+    match pattern {
+        Some(SeriesPattern::Weekdays { mask }) if mask == anchor_mask => None,
+        _ => pattern,
+    }
 }
 
 async fn owned_active_series(

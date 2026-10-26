@@ -71,3 +71,43 @@ Cookie: {{sessionCookie}}
   "due_at": null,
   "recurrence": null
 }
+
+### Repeat on Monday and Thursday in every second active week
+# Weekdays use ISO numbering (Monday = 1, Sunday = 7). Weeks start on Monday;
+# interval weeks are anchored to the week containing the first due date.
+# The initial occurrence keeps its due date even if it is not a selected weekday.
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Team check-in",
+  "due_at": "2030-01-07T08:00:00Z",
+  "recurrence": {
+    "frequency": "weekly",
+    "interval": 2,
+    "time_zone": "Europe/Warsaw",
+    "pattern": { "kind": "weekdays", "days": [1, 4] },
+    "end": { "mode": "never" }
+  }
+}
+
+### Repeat on the second Friday of every month
+# Ordinals 1..5 select a weekday from the start; -1 means the last weekday.
+# Months missing the fifth selected weekday are skipped without consuming a count.
+# Omit pattern (or use null) to retain the original day-of-month calculation.
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+Cookie: {{sessionCookie}}
+
+{
+  "name": "Monthly review",
+  "due_at": "2030-01-11T08:00:00Z",
+  "recurrence": {
+    "frequency": "monthly",
+    "interval": 1,
+    "time_zone": "Europe/Warsaw",
+    "pattern": { "kind": "monthly_weekday", "ordinal": 2, "weekday": 5 },
+    "end": { "mode": "after", "count": 12 }
+  }
+}

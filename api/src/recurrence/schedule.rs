@@ -1,5 +1,10 @@
 //! Calendar schedules for task occurrences, independent of persistence and delivery.
 
+use super::Pattern;
+
+#[path = "calendar_pattern.rs"]
+mod calendar_pattern;
+
 use jiff::{
     Span, Timestamp,
     civil::{Date, DateTime},
@@ -30,6 +35,8 @@ pub enum End {
 pub enum ScheduleError {
     #[error("The recurrence interval must be positive.")]
     InvalidInterval,
+    #[error("The weekday pattern is invalid for this frequency.")]
+    InvalidPattern,
     #[error("The occurrence limit must be positive.")]
     InvalidLimit,
     #[error("The occurrence count must include the first task.")]
@@ -50,6 +57,7 @@ pub struct Schedule {
     time_zone: TimeZone,
     anchor: DateTime,
     end: End,
+    pattern: Option<Pattern>,
 }
 
 impl Schedule {
@@ -81,7 +89,21 @@ impl Schedule {
             time_zone,
             anchor,
             end,
+            pattern: None,
         })
+    }
+
+    /// Adds a weekday pattern; absence preserves the original anchor-based rule.
+    ///
+    /// # Errors
+    /// Rejects empty/duplicate weekdays, incompatible frequencies and invalid ordinals.
+    pub fn with_pattern(mut self, pattern: Option<Pattern>) -> Result<Self, ScheduleError> {
+        if let Some(pattern) = &pattern {
+            pattern.validate(self.frequency)?;
+        }
+        self.pattern = pattern;
+        
+        Ok(self)
     }
 
     /// Finds the first slot strictly after both the original slot and completion.
@@ -107,6 +129,9 @@ impl Schedule {
         }
 
         let cutoff = scheduled_at.max(completed_at);
+        if let Some(pattern) = &self.pattern {
+            return self.next_pattern(pattern, cutoff);
+        }
         let mut index = self.estimated_index(cutoff)?;
 
         // A zone transition can move a slot onto a later local date. Check the

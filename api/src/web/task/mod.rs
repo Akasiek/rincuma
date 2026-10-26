@@ -1,6 +1,7 @@
 mod completion;
 mod deletion;
 mod handlers;
+mod history;
 mod locking;
 mod recurrence;
 mod relations;

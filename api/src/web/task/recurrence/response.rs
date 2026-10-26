@@ -53,6 +53,7 @@ pub(in crate::web::task) async fn attach_recurrence(
                     interval: series.interval,
                     time_zone: series.time_zone.clone(),
                     end: series.end,
+                    pattern: series.pattern.map(Into::into),
                 },
                 anchor: series.anchor,
                 occurrence_count: series.occurrence_count,
