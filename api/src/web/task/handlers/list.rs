@@ -14,7 +14,12 @@ use crate::{
     web::{
         auth::CurrentUser,
         list::{Page, PageResponse, SortOrder},
-        task::{TaskError, recurrence::attach_recurrence, response::TaskResponse},
+        task::{
+            TaskError,
+            history::{latest_completed_ids, visible_occurrences},
+            recurrence::attach_recurrence,
+            response::TaskResponse,
+        },
     },
 };
 
@@ -76,12 +81,30 @@ pub(in crate::web::task) async fn list(
         return Ok(Json(PageResponse::new(Vec::new(), 0, &page)));
     }
 
-    let total = filtered_tasks(user.id, &request, tagged_task_ids.as_deref(), now)
-        .count()
-        .exec(&mut db)
-        .await?;
+    let latest_completed = if matches!(request.status, TaskStatus::All | TaskStatus::Completed) {
+        Some(latest_completed_ids(&mut db, user.id).await?)
+    } else {
+        None
+    };
+
+    let total = filtered_tasks(
+        user.id,
+        &request,
+        tagged_task_ids.as_deref(),
+        latest_completed.as_deref(),
+        now,
+    )
+    .count()
+    .exec(&mut db)
+    .await?;
     let tasks = sorted_tasks(
-        filtered_tasks(user.id, &request, tagged_task_ids.as_deref(), now),
+        filtered_tasks(
+            user.id,
+            &request,
+            tagged_task_ids.as_deref(),
+            latest_completed.as_deref(),
+            now,
+        ),
         request.sort_by,
         request.order,
     )
@@ -120,9 +143,13 @@ fn filtered_tasks(
     owner_id: i64,
     request: &ListTasksQuery,
     tagged_task_ids: Option<&[i64]>,
+    latest_completed: Option<&[i64]>,
     now: Timestamp,
 ) -> DbQuery<List<Task>> {
     let mut query = DbQuery::<List<Task>>::all().filter(Task::fields().owner_id().eq(owner_id));
+    if let Some(latest_completed) = latest_completed {
+        query = query.filter(visible_occurrences(latest_completed));
+    }
     query = match request.status {
         TaskStatus::Active => query.filter(Task::fields().completed_at().is_none()),
         TaskStatus::Completed => query.filter(Task::fields().completed_at().is_some()),
@@ -219,3 +246,7 @@ async fn fetch_tag_ids_for_tasks(
 #[cfg(test)]
 #[path = "../tests/list.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "../tests/recurring_history.rs"]
+mod history_tests;
