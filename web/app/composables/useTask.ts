@@ -73,6 +73,10 @@ export function useTask() {
     return requestFetch<Task>(`/api/tasks/${id}`, { method: "PUT", body });
   }
 
+  function deleteTask(id: number): Promise<void> {
+    return requestFetch<void>(`/api/tasks/${id}`, { method: "DELETE" });
+  }
+
   async function completeTask(id: number): Promise<Task> {
     return await requestFetch<Task>(`/api/tasks/${id}/complete`, { method: "POST" });
   }
@@ -85,6 +89,7 @@ export function useTask() {
     createTask,
     getTask,
     updateTask,
+    deleteTask,
     completeTask,
     reopenTask,
     listTasks,

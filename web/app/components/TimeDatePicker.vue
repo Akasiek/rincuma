@@ -25,7 +25,7 @@ import {
 } from "reka-ui";
 
 const dateTime = defineModel<string | null>({ default: null });
-defineProps<{ compact?: boolean }>();
+defineProps<{ compact?: boolean; describedby?: string }>();
 const open = ref(false);
 const selectedDate = shallowRef<DateValue>();
 const selectedTime = shallowRef<TimeValue>();
@@ -68,6 +68,7 @@ function clear() {
     <template #trigger>
       <button
         type="button"
+        :aria-describedby="describedby"
         :title="compact ? formattedDateTime || 'Set date and time' : undefined"
         :aria-label="
           formattedDateTime ? `Change date and time: ${formattedDateTime}` : 'Set date and time'

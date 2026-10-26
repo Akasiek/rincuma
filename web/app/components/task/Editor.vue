@@ -37,6 +37,8 @@ const recurrenceReadonly = computed(
 const saveError = ref("");
 const validationErrors = ref<{ fieldId?: string; message: string }[]>([]);
 const isSubmitting = ref(false);
+const isDeleting = ref(false);
+const busy = computed(() => isSubmitting.value || isDeleting.value);
 const dirty = ref(false);
 const saved = ref(false);
 const formId = useId();
@@ -45,7 +47,7 @@ onScopeDispose(taskRequest.clear);
 
 useUnsavedChanges({
   dirty: computed(() => dirty.value && !saved.value),
-  saving: computed(() => isSubmitting.value && !saved.value),
+  saving: computed(() => busy.value && !saved.value),
   shouldConfirm: (to, from) => to.path !== from.path || to.query.task !== from.query.task,
 });
 
@@ -58,7 +60,7 @@ const errors = computed(() => {
 });
 
 async function saveTask(values: SaveTaskRequest) {
-  if (!task.value) {
+  if (!task.value || isDeleting.value) {
     return;
   }
 
@@ -82,10 +84,14 @@ async function saveTask(values: SaveTaskRequest) {
     return;
   }
 
+  finishEditing();
+  await refreshTaskLists();
+}
+
+function finishEditing() {
   saved.value = true;
   emit("saved");
   emit("close");
-  await refreshTaskLists();
 }
 
 await taskRequest;
@@ -99,10 +105,20 @@ await taskRequest;
     :form-id="formId"
     :error-summary-id="errorSummaryId"
     :errors="errors"
-    :is-submitting="isSubmitting"
+    :is-submitting="busy"
     :save-disabled="!task || loading"
     @update:open="emit('close')"
   >
+    <template #actions>
+      <TaskDeleteButton
+        v-if="task"
+        :task="task"
+        :disabled="isSubmitting || loading"
+        :dirty="dirty"
+        @deleting="isDeleting = $event"
+        @deleted="finishEditing"
+      />
+    </template>
     <div v-if="loadError" class="p-6">
       <p role="alert" class="font-sans text-sm text-light-love dark:text-dark-love">
         {{ loadError }}
@@ -115,6 +131,7 @@ await taskRequest;
       v-else-if="task"
       :initial-values="task"
       :recurrence-readonly="recurrenceReadonly"
+      :recurring-task="task.series_id !== null"
       :occurrence-count="task.recurrence?.occurrence_count"
       :recurrence-anchor="task.recurrence?.anchor"
       :form-id="formId"

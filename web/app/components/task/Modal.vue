@@ -71,6 +71,10 @@ function focusName(event: Event) {
       <Icon name="carbon:close" class="size-8 text-light-base dark:text-dark-base" />
     </button>
 
+    <div v-if="$slots.actions" class="absolute -bottom-4 -left-4 z-20">
+      <slot name="actions" />
+    </div>
+
     <button
       type="submit"
       :form="formId"
