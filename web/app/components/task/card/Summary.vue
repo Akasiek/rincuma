@@ -34,6 +34,15 @@ const descriptionOpen = defineModel<boolean>("descriptionOpen", { default: false
     >
       <TaskCardDueDate v-if="task.due_at" :due-at="task.due_at" :completed="!!task.completed_at" />
 
+      <span
+        v-if="task.recurrence"
+        class="inline-flex items-center gap-1 font-sans"
+        title="Repeating task"
+      >
+        <Icon name="carbon:renew" class="size-3" aria-hidden="true" />
+        Repeats
+      </span>
+
       <span v-if="task.parent_id !== null" class="inline-flex items-center gap-1 font-sans">
         <Icon name="carbon:tree-view-alt" class="size-3" aria-hidden="true" />
         Subtask
