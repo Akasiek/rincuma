@@ -13,10 +13,13 @@ defineOptions({ inheritAttrs: false });
 
 const open = defineModel<boolean>("open", { default: false });
 
-defineProps<{
+const { layer = "default" } = defineProps<{
   title: string;
   description?: string;
+  layer?: "default" | "confirmation";
 }>();
+
+const layerClass = computed(() => (layer === "confirmation" ? "z-60" : "z-50"));
 </script>
 
 <template>
@@ -26,12 +29,13 @@ defineProps<{
     </DialogTrigger>
 
     <DialogPortal>
-      <DialogOverlay class="modal-overlay fixed inset-0 z-50 bg-black/40" />
+      <DialogOverlay :class="layerClass" class="modal-overlay fixed inset-0 bg-black/40" />
 
       <DialogContent
         :aria-describedby="description ? undefined : null"
         v-bind="$attrs"
-        class="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2"
+        :class="layerClass"
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
       >
         <DialogTitle as="span" class="sr-only">
           {{ title }}

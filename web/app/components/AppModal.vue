@@ -6,6 +6,7 @@ const { size = "lg" } = defineProps<{
   title: string;
   description?: string;
   size?: "sm" | "lg";
+  layer?: "default" | "confirmation";
 }>();
 const widthClass = computed(() => (size === "sm" ? "max-w-sm" : "max-w-lg"));
 </script>
@@ -15,6 +16,7 @@ const widthClass = computed(() => (size === "sm" ? "max-w-sm" : "max-w-lg"));
     v-model:open="open"
     :title="title"
     :description="description"
+    :layer="layer"
     :class="widthClass"
     class="app-modal-content max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto rounded-md bg-light-surface font-serif text-light-text dark:bg-dark-surface dark:text-dark-text"
   >

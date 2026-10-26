@@ -11,6 +11,7 @@ const emit = defineEmits<{ decision: [leave: boolean] }>();
     title="Unsaved changes"
     description="You have unsaved changes. Stay or discard them and leave."
     size="sm"
+    layer="confirmation"
   >
     <div class="p-6">
       <h2 class="text-xl font-bold">Unsaved changes</h2>
