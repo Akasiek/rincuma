@@ -11,7 +11,7 @@ useHead({
 </script>
 
 <template>
-  <ToastProvider>
+  <ToastProvider :duration="8000">
     <div class="bg-light-base font-serif text-light-text dark:bg-dark-base dark:text-dark-text">
       <NuxtPage :key="isPageReady ? 'ready' : 'waiting-for-time-zone'" v-slot="{ Component }">
         <component :is="Component" v-if="isPageReady" />

@@ -13,7 +13,6 @@ export function useTaskCompletionToast() {
       title: "Task completed",
       description: task.name,
       status: "success",
-      duration: 8000,
       actionProps: {
         label: "Undo",
         altText: "Undo completion, or reopen the task from the list later",
@@ -45,7 +44,6 @@ export function useTaskCompletionToast() {
           status === 409
             ? "Its series or next occurrence has changed."
             : "Please try reopening the task from the list.",
-        duration: 8000,
       });
       pending.delete(task.id);
 
@@ -64,7 +62,7 @@ export function useTaskCompletionToast() {
     } catch {
       toast.update(id, {
         description: "The task was reopened. Refresh the list to see it.",
-        duration: 8000,
+        duration: undefined,
       });
     } finally {
       pending.delete(task.id);
