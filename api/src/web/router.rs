@@ -1,12 +1,10 @@
-use super::notifications;
+use super::{logging, notifications};
 use crate::app_state::AppState;
 use crate::web::{auth, project, tag, task};
 use axum::Router;
-use axum::extract::MatchedPath;
-use axum::http::{Request, StatusCode};
+use axum::http::StatusCode;
 use axum::routing::get;
 use tower_http::trace::TraceLayer;
-use tracing::info_span;
 
 pub fn get_app_router(state: AppState) -> Router {
     Router::new()
@@ -17,19 +15,11 @@ pub fn get_app_router(state: AppState) -> Router {
         .merge(tag::router())
         .merge(notifications::router())
         .layer(
-            TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
-                let matched_path = request
-                    .extensions()
-                    .get::<MatchedPath>()
-                    .map(MatchedPath::as_str);
-
-                info_span!(
-                    "http_request",
-                    method = ?request.method(),
-                    matched_path,
-                    some_other_field = tracing::field::Empty,
-                )
-            }),
+            TraceLayer::new_for_http()
+                .make_span_with(logging::request_span)
+                .on_request(())
+                .on_response(logging::log_response)
+                .on_failure(logging::log_failure),
         )
         .with_state(state)
 }

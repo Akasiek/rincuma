@@ -118,6 +118,7 @@ fn authenticated_response(
     token: &SessionToken,
     user: User,
 ) -> Result<Response, AuthError> {
+    tracing::Span::current().record("owner_id", user.id);
     let cookie = session_cookie(token.expose(), state.config().cookie_secure());
     let header_value =
         HeaderValue::from_str(&cookie.to_string()).map_err(|_| AuthError::Internal)?;

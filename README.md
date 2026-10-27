@@ -25,9 +25,9 @@ wget -O .env https://raw.githubusercontent.com/Akasiek/rincuma/main/.env.example
 
 Open `.env` using text editor and set `DB_PASS` value, which is required.
 You can also change `COOKIE_SECURE` to `false` when using app on local HTTP.
- published port.
+published port.
 
-The app listens on port `3000` by default. `APP_PORT` in `.env` changes it. 
+The app listens on port `3000` by default. `APP_PORT` in `.env` changes it.
 Point your HTTPS reverse proxy at that address when needed.
 
 ## Development

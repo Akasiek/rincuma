@@ -11,6 +11,11 @@ const BATCH_SIZE: usize = 100;
 
 pub(crate) fn spawn(state: AppState) -> Result<tokio::task::JoinHandle<()>, reqwest::Error> {
     let providers = Providers::new()?;
+    tracing::info!(
+        interval_seconds = CHECK_INTERVAL.as_secs(),
+        batch_size = BATCH_SIZE,
+        "Reminder worker started"
+    );
     Ok(tokio::spawn(async move {
         run_due_task_scanner(&state, &providers).await;
     }))
@@ -20,6 +25,7 @@ async fn run_due_task_scanner(state: &AppState, providers: &Providers) {
     loop {
         tokio::time::sleep(delay_until_next_minute()).await;
 
+        tracing::debug!("Scanning due reminders");
         if let Err(error) = check_due_tasks(state, providers, Timestamp::now()).await {
             tracing::error!(error = %error, "Reminder scan failed");
         }

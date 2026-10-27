@@ -36,6 +36,7 @@ impl FromRequestParts<AppState> for CurrentUser {
             return Err(AuthError::Unauthorized);
         }
 
+        tracing::Span::current().record("owner_id", user.id);
         Ok(Self(user))
     }
 }

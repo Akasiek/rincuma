@@ -19,6 +19,12 @@ pub(super) async fn deliver_reminder(
 
     if let Err(error) = provider.send(&current_settings, &notification).await {
         tracing::warn!(task_id = task.id, owner_id = task.owner_id, error = %error, "Reminder delivery failed");
+    } else {
+        tracing::info!(
+            task_id = task.id,
+            owner_id = task.owner_id,
+            "Reminder delivered"
+        );
     }
     Ok(())
 }

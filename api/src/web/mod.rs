@@ -2,6 +2,7 @@ mod auth;
 mod dictionary_counts;
 mod error;
 mod list;
+mod logging;
 mod notifications;
 mod project;
 mod router;
