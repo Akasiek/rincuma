@@ -1,0 +1,48 @@
+name: rincuma
+
+services:
+  app:
+    image: ghcr.io/akasiek/rincuma:latest
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    stop_grace_period: 30s
+
+    ports:
+      - ${APP_PORT:-3000}:3000
+    environment:
+      DB_USER: ${DB_USER:-rincuma}
+      DB_PASS: ${DB_PASS:?Set DB_PASS in .env}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-rincuma}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: ${DB_USER:-rincuma}
+      POSTGRES_PASSWORD: ${DB_PASS:?Set DB_PASS in .env}
+      POSTGRES_DB: ${DB_NAME:-rincuma}
+
+volumes:
+  postgres_data:

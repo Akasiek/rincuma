@@ -1,6 +1,6 @@
 # Rincuma
 
-Self-hostedable To-Do list application
+Self-hostable To-Do list application
 
 ## Name definition
 
@@ -8,6 +8,27 @@ rincuma
 Q. noun. task, charge, mission
 
 [Source - Parf Edhellen](https://www.elfdict.com/wt/526035)
+
+## Self-hosting with Docker Compose
+
+The production stack runs Nuxt SSR and the Rust API in one application container,
+with PostgreSQL in a separate container.
+
+Download the configuration into a dedicated directory:
+
+```bash
+mkdir -p rincuma
+cd rincuma
+wget -O compose.yaml https://raw.githubusercontent.com/Akasiek/rincuma/main/compose.yaml
+wget -O .env https://raw.githubusercontent.com/Akasiek/rincuma/main/.env.example
+```
+
+Open `.env` using text editor and set `DB_PASS` value, which is required.
+You can also change `COOKIE_SECURE` to `false` when using app on local HTTP.
+ published port.
+
+The app listens on port `3000` by default. `APP_PORT` in `.env` changes it. 
+Point your HTTPS reverse proxy at that address when needed.
 
 ## Development
 
