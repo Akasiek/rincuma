@@ -53,7 +53,7 @@ function apply() {
         :class="
           model
             ? 'bg-light-pine/10 text-light-pine hover:bg-light-pine/20 dark:bg-dark-pine/10 dark:text-dark-pine dark:hover:bg-dark-pine/20'
-            : 'hover:bg-light-highlight-med dark:hover:bg-dark-highlight-med'
+            : 'text-light-subtle hover:bg-light-highlight-med dark:text-dark-subtle dark:hover:bg-dark-highlight-med'
         "
         class="flex shrink-0 cursor-pointer items-center justify-center rounded-md border-2 border-transparent px-2.5 py-1.5 disabled:cursor-not-allowed disabled:opacity-50"
       >
