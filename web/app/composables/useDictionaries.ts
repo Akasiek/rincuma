@@ -1,3 +1,6 @@
+import type { CreateProjectRequest } from "#shared/types/project";
+import type { CreateTagRequest } from "#shared/types/tag";
+
 export function useDictionaries() {
   const store = useDictionariesStore();
   const userStore = useUserStore();
@@ -31,8 +34,8 @@ export function useDictionaries() {
     }
   }
 
-  async function loadDictionaries() {
-    if (store.loaded) {
+  async function loadDictionaries(force = false) {
+    if (store.loaded && !force) {
       return;
     }
 
@@ -53,5 +56,51 @@ export function useDictionaries() {
     store.setDictionaries(tags, projects);
   }
 
-  return { loadDictionaries };
+  async function createProject(body: CreateProjectRequest): Promise<Project> {
+    const project = await requestFetch<Project>("/api/projects", { method: "POST", body });
+    if (userStore.user?.id === project.owner_id) {
+      store.addProject(project);
+    }
+
+    return project;
+  }
+
+  async function createTag(body: CreateTagRequest): Promise<Tag> {
+    const tag = await requestFetch<Tag>("/api/tags", { method: "POST", body });
+    if (userStore.user?.id === tag.owner_id) {
+      store.addTag(tag);
+    }
+
+    return tag;
+  }
+
+  async function updateProject(id: number, body: CreateProjectRequest): Promise<void> {
+    const project = await requestFetch<Project>(`/api/projects/${id}`, { method: "PUT", body });
+    if (userStore.user?.id === project.owner_id) {
+      store.addProject(project);
+    }
+  }
+
+  async function updateTag(id: number, body: CreateTagRequest): Promise<void> {
+    const tag = await requestFetch<Tag>(`/api/tags/${id}`, { method: "PUT", body });
+    if (userStore.user?.id === tag.owner_id) {
+      store.addTag(tag);
+    }
+  }
+
+  async function deleteRecord(kind: "project" | "tag", id: number): Promise<void> {
+    const ownerId = userStore.user?.id;
+    await requestFetch(`/api/${kind}s/${id}`, { method: "DELETE" });
+    if (ownerId !== userStore.user?.id) {
+      return;
+    }
+
+    if (kind === "project") {
+      store.projects = store.projects.filter((project) => project.id !== id);
+    } else {
+      store.tags = store.tags.filter((tag) => tag.id !== id);
+    }
+  }
+
+  return { loadDictionaries, createProject, createTag, updateProject, updateTag, deleteRecord };
 }

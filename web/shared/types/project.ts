@@ -1,5 +1,6 @@
 export interface Project {
   id: number;
+  task_count?: number;
   name: string;
   description: string | null;
   color: string | null;
@@ -7,4 +8,10 @@ export interface Project {
   owner_id: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface CreateProjectRequest {
+  name: string;
+  description?: string | null;
+  color?: string | null;
 }

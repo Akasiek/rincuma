@@ -1,8 +1,20 @@
 <script setup lang="ts">
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "reka-ui";
-import { SettingsNotificationsPanel } from "#components";
+import { SettingsProjectsPanel, SettingsTagsPanel, SettingsNotificationsPanel } from "#components";
 
 const tabs = [
+  {
+    value: "projects",
+    label: "Projects",
+    icon: "carbon:folder",
+    panel: SettingsProjectsPanel,
+  },
+  {
+    value: "tags",
+    label: "Tags",
+    icon: "carbon:tag",
+    panel: SettingsTagsPanel,
+  },
   {
     value: "notifications",
     label: "Notifications",
@@ -16,7 +28,7 @@ const tabs = [
   <TabsRoot :default-value="tabs[0].value">
     <TabsList
       aria-label="Settings categories"
-      class="mb-8 flex gap-6 border-b border-light-highlight-med dark:border-dark-highlight-med"
+      class="mb-8 flex flex-wrap gap-x-6 gap-y-3 border-b border-light-highlight-med dark:border-dark-highlight-med"
     >
       <TabsTrigger
         v-for="tab in tabs"

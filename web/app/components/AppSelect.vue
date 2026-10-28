@@ -28,12 +28,26 @@ const props = defineProps<{
   compact?: boolean;
   triggerClass?: string;
   triggerStyle?: CSSProperties;
+  createLabel?: string;
 }>();
 
 const emit = defineEmits<{
   "update:modelValue": [value: SelectModelValue];
   blur: [event: FocusEvent];
+  create: [];
 }>();
+
+const open = ref(false);
+const createValue = `${useId()}-create`;
+let creating = false;
+
+function onCloseAutoFocus(event: Event) {
+  if (creating) {
+    event.preventDefault();
+    creating = false;
+    emit("create");
+  }
+}
 
 const selectedOptions = computed(() => {
   const values = Array.isArray(props.modelValue) ? props.modelValue : [props.modelValue];
@@ -45,10 +59,21 @@ const selectedLabels = computed(() =>
 );
 
 function updateValue(value: SelectOptionValue | SelectOptionValue[]) {
+  const values = Array.isArray(value) ? value : [value];
+  if (props.createLabel && values.includes(createValue)) {
+    startCreation();
+    return;
+  }
+
   emit(
     "update:modelValue",
     Array.isArray(value) ? value.filter((item): item is string | number => item !== null) : value,
   );
+}
+
+function startCreation() {
+  creating = true;
+  open.value = false;
 }
 </script>
 
@@ -66,6 +91,7 @@ function updateValue(value: SelectOptionValue | SelectOptionValue[]) {
       {{ label }}
     </Label>
     <SelectRoot
+      v-model:open="open"
       :model-value="modelValue"
       :multiple="multiple"
       :disabled="disabled"
@@ -106,6 +132,7 @@ function updateValue(value: SelectOptionValue | SelectOptionValue[]) {
           position="popper"
           align="start"
           :side-offset="6"
+          @close-auto-focus="onCloseAutoFocus"
           class="app-select-content z-60 max-h-(--reka-select-content-available-height) w-(--reka-select-trigger-width) min-w-42 overflow-hidden rounded-md border-2 border-light-highlight-med bg-light-surface font-sans text-sm text-light-text shadow-lg dark:border-dark-highlight-med dark:bg-dark-surface dark:text-dark-text"
         >
           <SelectViewport class="max-h-64 p-1">
@@ -122,6 +149,17 @@ function updateValue(value: SelectOptionValue | SelectOptionValue[]) {
                 <Icon name="carbon:checkmark" class="size-4" aria-hidden="true" />
               </SelectItemIndicator>
             </SelectItem>
+            <template v-if="createLabel">
+              <hr class="my-1 border border-light-highlight-med dark:border-dark-highlight-med" />
+              <SelectItem
+                :value="createValue"
+                @keydown.enter.stop.prevent="startCreation"
+                class="mt-1 flex cursor-pointer items-center gap-2 rounded-sm px-2 py-2 text-light-pine select-none data-highlighted:bg-light-highlight-med dark:text-dark-foam dark:data-highlighted:bg-dark-highlight-med"
+              >
+                <Icon name="carbon:add" class="size-4 shrink-0" aria-hidden="true" />
+                <SelectItemText>{{ createLabel }}</SelectItemText>
+              </SelectItem>
+            </template>
           </SelectViewport>
         </SelectContent>
       </SelectPortal>
