@@ -14,7 +14,8 @@
       <p
         class="max-w-md font-serif text-[3.75rem] leading-[1.08] font-semibold tracking-[-0.045em]"
       >
-        Give your plans<br />
+        Give your plans
+        <br />
         <em class="font-medium text-light-pine dark:text-dark-foam">a place.</em>
       </p>
       <p class="mt-5 max-w-md font-sans text-sm leading-7 text-light-subtle dark:text-dark-subtle">

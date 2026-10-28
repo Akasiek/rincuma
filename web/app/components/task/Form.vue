@@ -211,9 +211,9 @@ function onSubmit(event: Event) {
       class="mb-3 px-4 font-sans text-xs text-light-subtle dark:text-dark-subtle"
     >
       Changing the date affects only this occurrence.
-      <template v-if="!recurrenceReadonly"
-        >If you also change repeat settings, the new schedule starts from this date.</template
-      >
+      <template v-if="!recurrenceReadonly">
+        If you also change repeat settings, the new schedule starts from this date.
+      </template>
     </p>
   </form>
 </template>

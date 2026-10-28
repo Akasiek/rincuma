@@ -85,8 +85,9 @@ function clear() {
           v-if="formattedDateTime"
           :class="{ 'min-w-0 truncate': compact }"
           class="font-sans text-sm text-light-text dark:text-dark-text"
-          >{{ formattedDateTime }}</span
         >
+          {{ formattedDateTime }}
+        </span>
       </button>
     </template>
 

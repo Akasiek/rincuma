@@ -24,9 +24,9 @@ const emit = defineEmits<{ decision: [leave: boolean] }>();
       </p>
       <div class="mt-6 flex flex-wrap gap-3">
         <Button @click="emit('decision', false)">Stay</Button>
-        <Button variant="danger" :disabled="saving" @click="emit('decision', true)"
-          >Discard and leave</Button
-        >
+        <Button variant="danger" :disabled="saving" @click="emit('decision', true)">
+          Discard and leave
+        </Button>
       </div>
     </div>
   </AppModal>

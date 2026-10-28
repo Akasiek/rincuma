@@ -43,11 +43,12 @@ const emit = defineEmits<{ discard: [] }>();
         size="sm"
         :loading="saving"
         :disabled="disabled || !dirty"
-        >{{ saving ? "Saving…" : "Save changes" }}</Button
       >
-      <Button type="button" size="sm" :disabled="disabled || !dirty" @click="emit('discard')"
-        >Discard changes</Button
-      >
+        {{ saving ? "Saving…" : "Save changes" }}
+      </Button>
+      <Button type="button" size="sm" :disabled="disabled || !dirty" @click="emit('discard')">
+        Discard changes
+      </Button>
     </div>
   </fieldset>
 </template>
