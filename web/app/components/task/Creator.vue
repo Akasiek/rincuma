@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import TaskForm from "./Form.vue";
 import TaskModal from "./Modal.vue";
+import { taskFormValues } from "~/utils/taskForm";
 
 const open = defineModel<boolean>("open", { default: false });
 const emit = defineEmits<{ saved: [] }>();
 const { createTask, refreshTaskLists } = useTask();
 const route = useRoute();
+const dictionaries = useDictionariesStore();
+const initialValues = shallowRef(taskFormValues());
 const formId = useId();
 const errorSummaryId = `${formId}-errors`;
 const validationErrors = ref<{ fieldId?: string; message: string }[]>([]);
@@ -44,8 +47,26 @@ async function close() {
   }
 }
 
+function creationDefaults(): SaveTaskRequest {
+  const values = taskFormValues();
+  const id = Number(route.params.id);
+
+  if (route.meta.taskDictionary === "project") {
+    values.project_id =
+      dictionaries.projects.find((project) => project.id === id && !project.archived_at)?.id ??
+      null;
+  }
+
+  if (route.meta.taskDictionary === "tag" && dictionaries.tags.some((tag) => tag.id === id)) {
+    values.tag_ids = [id];
+  }
+
+  return values;
+}
+
 watch(open, (isOpen) => {
   if (isOpen) {
+    initialValues.value = creationDefaults();
     validationErrors.value = [];
     saveError.value = "";
     dirty.value = false;
@@ -86,6 +107,7 @@ async function saveTask(values: SaveTaskRequest) {
     <template v-if="$slots.trigger" #trigger><slot name="trigger" /></template>
     <TaskForm
       :key="formKey"
+      :initial-values="initialValues"
       :form-id="formId"
       :error-summary-id="errorSummaryId"
       :submit-task="saveTask"
