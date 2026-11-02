@@ -102,7 +102,7 @@ impl Schedule {
             pattern.validate(self.frequency)?;
         }
         self.pattern = pattern;
-        
+
         Ok(self)
     }
 

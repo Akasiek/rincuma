@@ -1,9 +1,9 @@
+use crate::app_state::AppState;
 use crate::web::router::get_app_router;
 use listenfd::ListenFd;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use tracing::info;
-use crate::app_state::AppState;
 
 pub async fn run(state: AppState) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let listen_address = state.config().listen_address();

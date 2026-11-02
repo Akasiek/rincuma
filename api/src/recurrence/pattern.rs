@@ -6,14 +6,9 @@ use super::{Frequency, ScheduleError};
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Pattern {
     /// Weekdays use ISO numbering: Monday is 1 and Sunday is 7.
-    Weekdays {
-        days: Vec<u32>,
-    },
+    Weekdays { days: Vec<u32> },
     /// Ordinals 1..=5 select from the start; -1 selects the last weekday.
-    MonthlyWeekday {
-        ordinal: i32,
-        weekday: u32,
-    },
+    MonthlyWeekday { ordinal: i32, weekday: u32 },
 }
 
 impl Pattern {

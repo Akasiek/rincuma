@@ -19,11 +19,11 @@ pub(in crate::web::task) async fn restore_deletion(
     if undo_expires_at(deleted_at)? <= now {
         return Err(TaskError::conflict("The deletion can no longer be undone."));
     }
-    
+
     let tasks = lock_deleted_tasks(executor, id, owner_id, deleted_at).await?;
     validate_restoration(executor, &tasks, deleted_at).await?;
     resume_series(executor, &tasks, now).await?;
-    
+
     for task in tasks {
         toasty::update!(Task::filter_by_id(task.id) {
             deleted_at: None,
@@ -33,7 +33,7 @@ pub(in crate::web::task) async fn restore_deletion(
         .exec(executor)
         .await?;
     }
-    
+
     Ok(())
 }
 

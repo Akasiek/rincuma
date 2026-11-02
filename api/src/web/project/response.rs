@@ -25,7 +25,7 @@ impl ProjectResponse {
     ) -> toasty::Result<Vec<Self>> {
         let ids: Vec<_> = projects.iter().map(|project| project.id).collect();
         let counts = crate::web::dictionary_counts::projects(db, owner_id, &ids).await?;
-        
+
         Ok(projects
             .into_iter()
             .map(|project| {

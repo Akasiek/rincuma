@@ -1,5 +1,5 @@
-use toasty::Db;
 use crate::config::AppConfig;
+use toasty::Db;
 
 pub async fn connect(config: &AppConfig) -> toasty::Result<Db> {
     Db::builder()
