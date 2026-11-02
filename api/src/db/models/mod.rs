@@ -1,3 +1,4 @@
+mod navigation_preferences;
 mod notification_settings;
 mod project;
 mod session;
@@ -6,6 +7,7 @@ mod task;
 mod task_series;
 mod user;
 
+pub(crate) use navigation_preferences::NavigationPreferences;
 pub(crate) use notification_settings::{NotificationProviderKind, NotificationSettings};
 pub(crate) use project::Project;
 pub(crate) use session::Session;

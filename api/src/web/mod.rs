@@ -3,6 +3,7 @@ mod dictionary_counts;
 mod error;
 mod list;
 mod logging;
+mod navigation_preferences;
 mod notifications;
 mod project;
 mod router;

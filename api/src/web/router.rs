@@ -1,4 +1,4 @@
-use super::{logging, notifications};
+use super::{logging, navigation_preferences, notifications};
 use crate::app_state::AppState;
 use crate::web::{auth, project, tag, task};
 use axum::Router;
@@ -14,6 +14,7 @@ pub fn get_app_router(state: AppState) -> Router {
         .merge(project::router())
         .merge(tag::router())
         .merge(notifications::router())
+        .merge(navigation_preferences::router())
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(logging::request_span)
