@@ -4,6 +4,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use serde::Deserialize;
+use toasty_core::driver::IsolationLevel;
 
 use crate::{
     app_state::AppState,
@@ -33,6 +34,10 @@ pub(super) async fn register(
     state: axum::extract::State<AppState>,
     Json(credentials): Json<Credentials>,
 ) -> Result<impl IntoResponse, AuthError> {
+    if !state.config().registration_enabled() {
+        return Err(AuthError::RegistrationDisabled);
+    }
+
     let email = normalize_email(&credentials.email)?;
     let password_hash = hash_password(credentials.password)
         .await
@@ -40,9 +45,17 @@ pub(super) async fn register(
     let now = current_timestamp()?;
     let mut db = state.db().clone();
 
-    let mut transaction = db.transaction().await.map_err(AuthError::from)?;
+    // Serializable isolation keeps concurrent first registrations from both becoming admin.
+    let mut transaction = db
+        .transaction_builder()
+        .isolation(IsolationLevel::Serializable)
+        .begin()
+        .await
+        .map_err(AuthError::from)?;
+    let is_first_user = !User::any_exist(&mut transaction).await?;
     let user = User::upsert_by_email(email)
         .password_hash(password_hash)
+        .is_admin(is_first_user)
         .created_at(now)
         .updated_at(now)
         .or_ignore()
@@ -130,3 +143,7 @@ fn authenticated_response(
     )
         .into_response())
 }
+
+#[cfg(test)]
+#[path = "tests/register.rs"]
+mod tests;

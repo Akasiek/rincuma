@@ -59,7 +59,7 @@ pub(crate) async fn verify_password(
     .await?
 }
 
-fn validate_length(password: &str) -> Result<(), PasswordError> {
+pub(crate) fn validate_length(password: &str) -> Result<(), PasswordError> {
     if password.is_empty() {
         return Err(PasswordError::TooShort);
     }

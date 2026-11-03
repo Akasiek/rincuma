@@ -30,6 +30,15 @@ published port.
 The app listens on port `3000` by default. `APP_PORT` in `.env` changes it.
 Point your HTTPS reverse proxy at that address when needed.
 
+### Admin account and registration
+
+Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` before the first startup to create the
+admin account. They are ignored once any user exists.
+
+Registration is disabled by default. Set `REGISTRATION_ENABLED=true` to allow
+sign-ups; the first account in an empty database becomes the admin. On upgrade,
+the oldest existing account becomes the admin.
+
 ## Development
 
 ### Local API and PostgreSQL

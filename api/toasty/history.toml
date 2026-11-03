@@ -44,3 +44,8 @@ snapshot_name = "0007_snapshot.toml"
 id = 6815615922507070559
 name = "0008_navigation_preferences.sql"
 snapshot_name = "0008_snapshot.toml"
+
+[[migrations]]
+id = 7121510074466965839
+name = "0009_admin_role.sql"
+snapshot_name = "0009_snapshot.toml"

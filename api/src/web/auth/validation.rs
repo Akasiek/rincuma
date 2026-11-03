@@ -3,21 +3,7 @@ use crate::auth::password::PasswordError;
 use super::error::AuthError;
 
 pub(super) fn normalize_email(email: &str) -> Result<String, AuthError> {
-    let email = email.trim().to_lowercase();
-    let Some((local, domain)) = email.split_once('@') else {
-        return Err(AuthError::BadRequest);
-    };
-
-    if email.len() > 254
-        || local.is_empty()
-        || domain.is_empty()
-        || domain.contains('@')
-        || email.chars().any(char::is_whitespace)
-    {
-        return Err(AuthError::BadRequest);
-    }
-
-    Ok(email)
+    crate::auth::email::normalize_email(email).ok_or(AuthError::BadRequest)
 }
 
 #[allow(clippy::needless_pass_by_value)]

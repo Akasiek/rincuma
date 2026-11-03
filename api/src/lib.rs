@@ -15,10 +15,14 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     tracer::init();
 
     tracing::info!(version = env!("CARGO_PKG_VERSION"), "Starting API");
-    let config = AppConfig::from_env()?;
+    let mut config = AppConfig::from_env()?;
     tracing::info!("Connecting to database");
     let db = db::connect(&config).await?;
     tracing::info!("Database connection established");
+
+    let admin = config.take_admin();
+    auth::bootstrap::bootstrap_admin(&db, admin, config.registration_enabled()).await?;
+
     let state = AppState::new(config, db);
 
     let notification_worker = notifications::worker::spawn(state.clone())?;

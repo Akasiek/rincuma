@@ -2863,6 +2863,7 @@ dependencies = [
  "thiserror",
  "toasty",
  "toasty-cli",
+ "toasty-core",
  "toasty-driver-sqlite",
  "tokio",
  "tower",

@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use serde::Deserialize;
 
+use crate::config::AdminCredentials;
 use crate::config::error::ConfigError;
 use crate::config::model::AppConfig;
 
@@ -24,6 +25,10 @@ struct EnvConfig {
     db_name: String,
     #[serde(default = "default_cookie_secure")]
     cookie_secure: bool,
+    #[serde(default)]
+    registration_enabled: bool,
+    admin_email: Option<String>,
+    admin_password: Option<String>,
 }
 
 impl AppConfig {
@@ -34,6 +39,7 @@ impl AppConfig {
             return Err(ConfigError::ZeroPort);
         }
 
+        let admin = AdminCredentials::from_env(config.admin_email, config.admin_password)?;
         let database_url = format!(
             "postgresql://{}:{}@{}:{}/{}",
             config.db_user, config.db_pass, config.db_host, config.db_port, config.db_name
@@ -44,6 +50,8 @@ impl AppConfig {
             database_url,
             listen_address: SocketAddr::new(config.host, config.port),
             cookie_secure: config.cookie_secure,
+            registration_enabled: config.registration_enabled,
+            admin,
         })
     }
 }

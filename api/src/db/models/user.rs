@@ -12,11 +12,19 @@ pub(crate) struct User {
     #[default(true)]
     pub(crate) is_active: bool,
 
+    #[default(false)]
+    pub(crate) is_admin: bool,
+
     pub(crate) created_at: jiff::Timestamp,
     pub(crate) updated_at: jiff::Timestamp,
 }
 
 impl User {
+    pub(crate) async fn any_exist(executor: &mut dyn toasty::Executor) -> toasty::Result<bool> {
+        let count = Self::all().count().exec(executor).await?;
+        Ok(count > 0)
+    }
+
     pub(crate) async fn is_email_taken(
         executor: &mut dyn toasty::Executor,
         email: &str,

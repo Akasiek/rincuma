@@ -22,6 +22,9 @@ services:
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-rincuma}
       COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-false}
 
   postgres:
     image: postgres:18-alpine
