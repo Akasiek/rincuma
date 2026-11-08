@@ -1,4 +1,4 @@
-use super::{logging, navigation_preferences, notifications};
+use super::{instance, logging, navigation_preferences, notifications};
 use crate::app_state::AppState;
 use crate::web::{auth, project, tag, task};
 use axum::Router;
@@ -10,6 +10,7 @@ pub fn get_app_router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(health))
         .nest("/auth", auth::router())
+        .merge(instance::router())
         .merge(task::router())
         .merge(project::router())
         .merge(tag::router())

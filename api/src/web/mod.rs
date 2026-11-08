@@ -1,6 +1,7 @@
 mod auth;
 mod dictionary_counts;
 mod error;
+mod instance;
 mod list;
 mod logging;
 mod navigation_preferences;
