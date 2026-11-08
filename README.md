@@ -56,7 +56,7 @@ volume. Run the Rust API locally from a second terminal in the `api` directory:
 
 ```bash
 # with hot-reload
-systemfd --no-pid -s http::7878 -- cargo watch -x run
+systemfd --no-pid -s http::7878 -- bacon api
 
 # or without hot-reload
 cargo run

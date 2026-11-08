@@ -1,0 +1,7 @@
+# Run with systemfd so the port stays open while the API restarts:
+# systemfd --no-pid -s http::7878 -- bacon api
+[jobs.api]
+command = ["cargo", "run"]
+need_stdout = true
+background = false
+on_change_strategy = "kill_then_restart"
