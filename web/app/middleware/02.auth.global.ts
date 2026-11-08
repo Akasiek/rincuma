@@ -1,4 +1,4 @@
-const publicPaths = new Set(["/login"]);
+const publicPaths = new Set(["/login", "/register"]);
 
 export default defineNuxtRouteMiddleware((to) => {
   const path = to.path.replace(/\/+$/, "") || "/";

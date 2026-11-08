@@ -3,6 +3,7 @@ import { Form as VeeForm, type SubmissionHandler } from "vee-validate";
 
 const { object, string } = useYup();
 const { login } = useAuth();
+const instance = useInstanceStore();
 
 const schema = toTypedSchema(
   object({
@@ -34,18 +35,11 @@ const onSubmit: SubmissionHandler = async (values) => {
 </script>
 
 <template>
-  <section
-    class="login-card relative w-full rounded-2xl border border-light-highlight-med/70 bg-light-surface p-7 sm:p-10 dark:border-dark-highlight-med dark:bg-dark-surface"
-    aria-labelledby="login-title"
+  <LoginCard
+    title-id="login-title"
+    title="Welcome back."
+    description="Log in to pick up where you left off."
   >
-    <div class="mb-8">
-      <h1 id="login-title" class="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
-        Welcome back.
-      </h1>
-      <p class="mt-3 font-sans text-sm leading-6 text-light-subtle dark:text-dark-subtle">
-        Log in to pick up where you left off.
-      </p>
-    </div>
     <VeeForm
       :validation-schema="schema"
       novalidate
@@ -76,14 +70,7 @@ const onSubmit: SubmissionHandler = async (values) => {
           placeholder="Enter your password"
           class="login-input"
         />
-        <div
-          v-if="loginError"
-          role="alert"
-          class="flex items-start gap-2.5 rounded-lg border border-light-love/20 bg-light-love/5 px-3 py-3 font-sans text-sm leading-6 text-light-love dark:border-dark-love/20 dark:bg-dark-love/5 dark:text-dark-love"
-        >
-          <Icon name="carbon:warning-alt" class="mt-1 size-4 shrink-0" aria-hidden="true" />
-          <p>{{ loginError }}</p>
-        </div>
+        <LoginErrorAlert v-if="loginError" :message="loginError" />
         <Button
           type="submit"
           variant="primary"
@@ -96,53 +83,17 @@ const onSubmit: SubmissionHandler = async (values) => {
         </Button>
       </fieldset>
     </VeeForm>
-  </section>
+    <p
+      v-if="instance.registrationEnabled"
+      class="mt-6 text-center font-sans text-sm text-light-subtle dark:text-dark-subtle"
+    >
+      New here?
+      <NuxtLink
+        to="/register"
+        class="font-medium text-light-pine underline-offset-4 hover:underline dark:text-dark-foam"
+      >
+        Create account
+      </NuxtLink>
+    </p>
+  </LoginCard>
 </template>
-
-<style scoped>
-.login-card {
-  box-shadow: 0 24px 70px -32px color-mix(in srgb, var(--color-light-text) 25%, transparent);
-}
-
-.login-card :deep(.login-input) {
-  min-height: 3rem;
-  border-width: 1px;
-  border-radius: 0.5rem;
-  background-color: var(--color-light-base);
-  transition:
-    border-color 150ms,
-    box-shadow 150ms;
-}
-
-.login-card :deep(.login-input:focus-visible) {
-  outline-color: var(--color-light-pine);
-  outline-offset: 3px;
-}
-
-.login-card :deep(.login-input::placeholder) {
-  color: var(--color-light-muted);
-}
-
-.login-submit {
-  min-height: 3rem;
-  border-radius: 0.5rem;
-}
-
-@media (prefers-color-scheme: dark) {
-  .login-card {
-    box-shadow: 0 24px 70px -32px rgb(0 0 0 / 45%);
-  }
-
-  .login-card :deep(.login-input) {
-    background-color: var(--color-dark-base);
-  }
-
-  .login-card :deep(.login-input:focus-visible) {
-    outline-color: var(--color-dark-foam);
-  }
-
-  .login-card :deep(.login-input::placeholder) {
-    color: var(--color-dark-muted);
-  }
-}
-</style>

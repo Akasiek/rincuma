@@ -1,4 +1,4 @@
-type LoginCredentials = {
+type Credentials = {
   email: string;
   password: string;
 };
@@ -9,8 +9,17 @@ export function useAuth() {
   const navigationPreferences = useNavigationPreferencesStore();
   const requestFetch = useRequestFetch();
 
-  async function login(credentials: LoginCredentials) {
+  async function login(credentials: Credentials) {
     const user = await $fetch<User>("/api/auth/login", {
+      method: "POST",
+      body: credentials,
+    });
+
+    userStore.setUser(user);
+  }
+
+  async function register(credentials: Credentials) {
+    const user = await $fetch<User>("/api/auth/register", {
       method: "POST",
       body: credentials,
     });
@@ -47,5 +56,5 @@ export function useAuth() {
     }
   }
 
-  return { login, logout, fetchCurrentUser };
+  return { login, register, logout, fetchCurrentUser };
 }

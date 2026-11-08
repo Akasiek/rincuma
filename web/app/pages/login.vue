@@ -2,6 +2,7 @@
 useHead({ title: "Log in" });
 
 const { isLoggedIn } = useUserStore();
+await useInstanceStore().load();
 
 onMounted(async () => {
   if (isLoggedIn) {
